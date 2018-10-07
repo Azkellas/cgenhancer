@@ -153,16 +153,26 @@
             let agentSubmitBloc = document.getElementsByClassName("testcases-actions-container")[0];
             let codeBloc = document.getElementsByClassName("code-bloc")[0];
             let consoleBloc = document.getElementsByClassName("console-bloc")[0];
-            let statementBloc = document.getElementsByClassName("console-bloc")[0];
+            let statementBloc = document.getElementsByClassName("statement-bloc")[0];
             if ($(codeBloc).css('bottom') !== '295px')
                 $(codeBloc).css('bottom',     '295px');
-            if ($(statementBloc).css('bottom') !== '295px')
-                $(statementBloc).css('bottom',     '295px');
-            if ($(agentSubmitBloc).css('top') !== 'calc(100% - 295px)');
+            if ($(agentSubmitBloc).css('top') === 'calc(100% - 252px)');
                 $(agentSubmitBloc).css('top',     'calc(100% - 295px)');
-            if ($(consoleBloc).css('top') !== 'calc(100% - 295px)');
-                $(consoleBloc).css('top',     'calc(100% - 295px)');
-
+            // only affects the left panel if the console is not reduced and has default value
+            if (document.getElementsByClassName('header-button unminimize-button').length == 0)
+            {
+                if ($(consoleBloc).css('top') === 'calc(100% - 252px)');
+                    $(consoleBloc).css('top',     'calc(100% - 295px)');   
+                if ($(statementBloc).css('bottom') !== '295px')
+                    $(statementBloc).css('bottom',     '295px');
+            }
+            else
+            {
+                if ($(consoleBloc).css('top') !== 'calc(100% - 52px)');
+                    $(consoleBloc).css('top',     'calc(100% - 52px)');   
+                if ($(statementBloc).css('bottom') !== '52px')
+                    $(statementBloc).css('bottom',     '52px');
+            }
             let agentForApi = document.getElementsByClassName("agent")[0];
             if (agentForApi && agentApi === undefined)
             {
@@ -669,23 +679,3 @@
         }
     }
 })();
-
-
-
-
-
-
-/*
-TODO:
-  Tab History:
-    - erase submits (bin tab)
-    - create tabs
-    - automatically store the submit rank
-
-  last battles:
-    - winrate 
-    - timeouts
-
-  IDE:
-    - sync player / logs
-*/
