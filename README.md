@@ -25,15 +25,23 @@ For further personalization, look for `// disallow sound for notifications` and 
 * Button for fast selection (IDE / Arena / Boss agents)
 * Input for fast player selection ('Magus', 'Azkellas')
 
+![AgentExample](https://i.imgur.com/6lgwYNS.gif)
+
+
 #### History tab
 * Display the full date
 * Possibility to rename submits
 * Possibility to save the rank and the elo of submits
 
+![HistoryExample](https://image.ibb.co/eDarJp/history.gif)
+
+
 #### Last battles tab
 * Disable the tv-battle at opening (game is still loaded but not displayed)
 * Show opponents' rankings (if in the top1000)
 * Highlight unexpected results (winning against a better opponent / losing against a worse opponent)
+
+![LastBattlesExample](https://image.ibb.co/hTop4U/lastbattles.gif)
 
 
 ## Possible todos
