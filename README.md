@@ -24,8 +24,6 @@ For further personalization, look for `// disallow sound for notifications` and 
 * Swap button like CG spunk
 * Button for fast selection (IDE / Arena / Boss agents)
 * Input for fast player selection ('Magus', 'Azkellas')
-![AgentExample](https://i.imgur.com/6lgwYNS.gif)
-
 
 ![AgentExample](https://i.imgur.com/6lgwYNS.gif)
 
@@ -34,8 +32,6 @@ For further personalization, look for `// disallow sound for notifications` and 
 * Display the full date
 * Possibility to rename submits
 * Possibility to save the rank and the elo of submits
-![HistoryExample](https://image.ibb.co/eDarJp/history.gif)
-
 
 ![HistoryExample](https://image.ibb.co/eDarJp/history.gif)
 
@@ -44,7 +40,6 @@ For further personalization, look for `// disallow sound for notifications` and 
 * Disable the tv-battle at opening (game is still loaded but not displayed)
 * Show opponents' rankings (if in the top1000)
 * Highlight unexpected results (winning against a better opponent / losing against a worse opponent)
-![LastBattlesExample](https://image.ibb.co/hTop4U/lastbattles.gif)
 
 ![LastBattlesExample](https://image.ibb.co/hTop4U/lastbattles.gif)
 
