@@ -253,10 +253,10 @@
                 for (var playerAvatar of battleDiv.getElementsByClassName('player-agent'))
                 {
                     let player = $(playerAvatar).attr('title');
-                    if (player !== undefined && player !== userPseudo && playersData[player] !== undefined)
+                    if (player !== undefined && player !== userPseudo && playersData[player.toLowerCase()] !== undefined)
                     {
                         if (playerAvatar.getElementsByClassName('player-rank-cgen').length === 0)
-                            $(playerAvatar).append(`<div class='player-rank-cgen' style='` + rankAvatarCss + `'>` + playersData[player].localRank + `</div>`);
+                            $(playerAvatar).append(`<div class='player-rank-cgen' style='` + rankAvatarCss + `'>` + playersData[player.toLowerCase()].localRank + `</div>`);
                     }
                 }
             }
@@ -496,8 +496,8 @@
             let playerAvatar = players[playerIdx];
 
             let player = $(playerAvatar).attr('title');
-            if (player !== undefined && playersData[player] !== undefined && player !== userPseudo)
-                enemyRank = playersData[player].localRank;
+            if (player !== undefined && playersData[player.toLowerCase()] !== undefined && player !== userPseudo)
+                enemyRank = playersData[player.toLowerCase()].localRank;
             if (player !== undefined && player === userPseudo)
             {
                 userRank = userAgentId.localRank;
@@ -553,10 +553,10 @@
             let pseudo = $(this).val();
             
             // add existing player
-            if (playersData[pseudo] !== undefined)
+            if (playersData[pseudo.toLowerCase()] !== undefined)
             {
                 console.log('player ' + pseudo + ' found');
-                addAgent(event.data.index, pseudo);
+                addAgent(event.data.index, pseudo.toLowerCase());
                 $(this).text('');
                 $(this).css('color', '#fff');
                 $(this).blur();
@@ -639,7 +639,7 @@
 
                 for (let user of result.users)
                 {
-                    playersData[user.pseudo] = user;
+                    playersData[user.pseudo.toLowerCase()] = user;
                     if (user.arenaboss !== undefined && (userAgentId === undefined || userAgentId.league.divisionIndex === user.league.divisionIndex))
                         bossAgentId = user;
                 }
@@ -670,7 +670,7 @@
                     let users = rawLeaderboard.users;
                     for (let user of users)
                     {
-                        playersData[user.pseudo] = user;
+                        playersData[user.pseudo.toLowerCase()] = user;
                         // playersData[user.pseudo].rank = user.localRank;
                         // playersData[user.pseudo].agentId = user.agentId;
                     }
