@@ -447,7 +447,8 @@
         for (let agent of document.getElementsByClassName("agent"))
         {
             agent = unsafeWindow.angular.element(agent);
-            agents.push(agent.scope().$parent.agent);
+            if (agent.scope().$parent.agent !== null)
+                agents.push(agent.scope().$parent.agent);
         }
         // shift agents
         agents.push(agents.shift());
