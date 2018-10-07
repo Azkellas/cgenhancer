@@ -47,4 +47,6 @@ For further personalization, look for `// disallow sound for notifications` and 
 * Highlight timeouts
 
 ### IDE:
+* Replace the `<input/>` fast agent choice by a reactive `<ng-select>` (help needed)
+* Add the possibility to chose between the local leaderboard (current div and lower) and global leaderboard (from legend to bottom) to chose agents
 * Synchronize storage data for multi browser support (requires making it an app)
