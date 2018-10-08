@@ -6,9 +6,6 @@
 // @match https://www.codingame.com/*
 // @license 2018+, MIT
 // @require http://code.jquery.com/jquery-latest.js
-// @require https://cdnjs.cloudflare.com/ajax/libs/then-request/2.2.0/request.min.js
-// @require https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.12.6/js/standalone/selectize.min.js
-// @require https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/js/select2.min.js
 // tamper/violent grants
 // @grant GM_setValue
 // @grant GM_getValue
@@ -32,15 +29,18 @@
     if (typeof(GM_getValue) !== 'undefined')
     {
         console.log('[CG Enhancer] Tamper/Violentmoneky detected');
+        console.log(GM_getValue);
         GMsetValue = GM_setValue;
         GMgetValue = GM_getValue;
         GMxmlhttpRequest = GM_xmlhttpRequest;    
     }
-    if (typeof(GM) !== 'undefined' && GM.getValue)
+    if (typeof(GM) !== 'undefined' && GM.xmlhttpRequest)
     {
         console.log('[CG Enhancer] Greasemoneky detected');
+        console.log(GM);
+        console.log(GM.getValue);
         GMsetValue = GM.setValue;
-        GMgetValue = GM.getValue;
+        GMgetValue = function(key) {return GM.getValue(key).then(function(value) {return value;})};
         GMxmlhttpRequest = GM.xmlhttpRequest;    
     }
 
@@ -271,7 +271,7 @@
             }
             // console.log(mutations);
             // check if we opened last battles without looking at all mutations
-            if ($(mutations[0].target).attr('class') === "cg-ide-last-battles")
+            if ($(mutations[0].target).attr('class') && $(mutations[0].target).attr('class').indexOf("cg-ide-last-battles") !== -1)
             {
                 console.log('[CG Enhancer] Opened last battles');
                 blockTvViewer = true;
@@ -516,6 +516,10 @@
     {
         // if more than 2 players, not coloration
         if (battleDiv.getElementsByClassName('player-agent').length > 2)
+            return '#fff';
+
+        // userAgent undefined
+        if (!userAgent)
             return '#fff';
 
         let userRank = undefined;
