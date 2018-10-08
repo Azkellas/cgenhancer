@@ -20,10 +20,10 @@
 
 // ==/UserScript==
 
-// @require https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.7.2/angular.js
-
 (function() {
     'use strict';
+
+    const useAgentModule = true;
 
     var GMsetValue = undefined;
     var GMgetValue = undefined;
@@ -50,11 +50,13 @@
         return;
     }
 
-    // required to access codingame local api
-    // done first before angular has time to load
-    let ngDebugStr = 'NG_ENABLE_DEBUG_INFO!';
-    if (unsafeWindow.name.indexOf(ngDebugStr) === -1) {
-        unsafeWindow.name = ngDebugStr + unsafeWindow.name;
+    if (useAgentModule)
+    {
+        // required to access codingame local api
+        // done first before angular has time to load
+        let ngDebugStr = 'NG_ENABLE_DEBUG_INFO!';
+        if (unsafeWindow.name.indexOf(ngDebugStr) === -1)
+            unsafeWindow.name = ngDebugStr + unsafeWindow.name;
     }
 
     // jquery
@@ -150,7 +152,7 @@
         }
 
         // check user pseudonyme
-        var pseudoDiv = document.getElementsByClassName("navigation-profile_nav-profile-nickname")[0];
+        let pseudoDiv = document.getElementsByClassName("navigation-profile_nav-profile-nickname")[0];
         if (userPseudo === undefined && pseudoDiv)
         {
             userPseudo = $(pseudoDiv).attr('title');
@@ -163,10 +165,10 @@
         if (document.getElementsByClassName("main").length === 0)
         {
             // remove community notifications 
-            var contributionNav = document.getElementById("navigation-contribute");
+            let contributionNav = document.getElementById("navigation-contribute");
             if (contributionNav)
             {
-                var bubbleNotif = contributionNav.getElementsByClassName("cg-notification-bubble")[0];
+                let bubbleNotif = contributionNav.getElementsByClassName("cg-notification-bubble")[0];
                 if (bubbleNotif)
                 {
                     bubbleNotif.remove();
@@ -194,80 +196,82 @@
                 $('#cgeSwapButton').click(rotateAgents);
             }
 
-            // resize blocs to fit fast agent selection buttons
-            let agentSubmitBloc = document.getElementsByClassName("testcases-actions-container")[0];
-            let codeBloc = document.getElementsByClassName("code-bloc")[0];
-            let consoleBloc = document.getElementsByClassName("console-bloc")[0];
-            let statementBloc = document.getElementsByClassName("statement-bloc")[0];
-            if ($(codeBloc).css('bottom') !== '295px')
-                $(codeBloc).css('bottom',     '295px');
-            if ($(agentSubmitBloc).css('top') === 'calc(100% - 252px)');
-                $(agentSubmitBloc).css('top',     'calc(100% - 295px)');
-            // only affects the left panel if the console is not reduced and has default value
-            if (document.getElementsByClassName('header-button unminimize-button').length == 0)
+            if (useAgentModule)
             {
-                if ($(consoleBloc).css('top') === 'calc(100% - 252px)');
-                    $(consoleBloc).css('top',     'calc(100% - 295px)');   
-                if ($(statementBloc).css('bottom') !== '295px')
-                    $(statementBloc).css('bottom',     '295px');
-            }
-            else
-            {
-                if ($(consoleBloc).css('top') !== 'calc(100% - 52px)');
-                    $(consoleBloc).css('top',     'calc(100% - 52px)');   
-                if ($(statementBloc).css('bottom') !== '52px')
-                    $(statementBloc).css('bottom',     '52px');
-            }
-            let agentForApi = document.getElementsByClassName("agent")[0];
-            if (agentForApi && agentApi === undefined)
-            {
-                console.log('[CG Enhancer] CG Enhancer is now working for IDEs.');
-                agentApi = unsafeWindow.angular.element(agentForApi).scope().api;
-            }
-
-
-            let agents = document.getElementsByClassName("agent");
-            for (let agentIdx = 0; agentIdx < agents.length; agentIdx++) { 
-                let agent = agents[agentIdx];
-                if (agent.getElementsByClassName('fastSelectButtons').length === 0)
+                // resize blocs to fit fast agent selection buttons
+                let agentSubmitBloc = document.getElementsByClassName("testcases-actions-container")[0];
+                let codeBloc = document.getElementsByClassName("code-bloc")[0];
+                let consoleBloc = document.getElementsByClassName("console-bloc")[0];
+                let statementBloc = document.getElementsByClassName("statement-bloc")[0];
+                if ($(codeBloc).css('bottom') !== '295px')
+                    $(codeBloc).css('bottom',     '295px');
+                if ($(agentSubmitBloc).css('top') === 'calc(100% - 252px)');
+                    $(agentSubmitBloc).css('top',     'calc(100% - 295px)');
+                // only affects the left panel if the console is not reduced and has default value
+                if (document.getElementsByClassName('header-button unminimize-button').length == 0)
                 {
-                    console.log('[CG Enhancer] Add images');
-                    $(agent).append(`<div class="fastSelectButtons"></div>`);
-                    let fastDiv = agent.getElementsByClassName('fastSelectButtons')[0];
-                    $(ideImage).clone().appendTo(fastDiv);
-                    $(fastDiv.getElementsByClassName('ideImage')[0]).click(function(event) {
-                        addAgent(agentIdx, 'ide');
-                    })
-                    $(arenaImage).clone().appendTo(fastDiv);
-                    $(fastDiv.getElementsByClassName('arenaImage')[0]).click(function(event) {
-                        addAgent(agentIdx, 'arena');
-                    })
-                    $(bossImage).clone().appendTo(fastDiv);
-                    $(fastDiv.getElementsByClassName('bossImage')[0]).click(function(event) {
-                        addAgent(agentIdx, 'boss');
-                    })
+                    if ($(consoleBloc).css('top') === 'calc(100% - 252px)');
+                        $(consoleBloc).css('top',     'calc(100% - 295px)');   
+                    if ($(statementBloc).css('bottom') !== '295px')
+                        $(statementBloc).css('bottom',     '295px');
+                }
+                else
+                {
+                    if ($(consoleBloc).css('top') !== 'calc(100% - 52px)');
+                        $(consoleBloc).css('top',     'calc(100% - 52px)');   
+                    if ($(statementBloc).css('bottom') !== '52px')
+                        $(statementBloc).css('bottom',     '52px');
+                }
 
-                    console.log('[CG Enhancer] Add fast input');
-                    $(agent).append(`<div class="fastInput"></div>`);
-                    let inputDiv = agent.getElementsByClassName('fastInput')[0];
-                    $(inputDiv).append(`<input class="fastAgentInput" type="text" />`);
-                    let inputBox = inputDiv.getElementsByClassName('fastAgentInput')[0];
-                    $(inputBox).keyup({'index': agentIdx}, addFastPlayer);
+                let agentForApi = document.getElementsByClassName("agent")[0];
+                if (agentForApi && agentApi === undefined)
+                {
+                    console.log('[CG Enhancer] CG Enhancer is now working for IDEs.');
+                    agentApi = unsafeWindow.angular.element(agentForApi).scope().api;
+                }
 
-                    $(inputBox).css('width', '80px');
-                    $(inputBox).css('height', '20px');
-                    $(inputBox).css('padding-left', '5px');
-                    $(inputBox).css('background-color', '#777');
-                    $(inputBox).css('color', '#fff');
-                    $(inputBox).css('margin-bottom', '0px');
-                    
-                    updatePlayersData();
+                let agents = document.getElementsByClassName("agent");
+                for (let agentIdx = 0; agentIdx < agents.length; agentIdx++) { 
+                    let agent = agents[agentIdx];
+                    if (agent.getElementsByClassName('fastSelectButtons').length === 0)
+                    {
+                        console.log('[CG Enhancer] Add images');
+                        $(agent).append(`<div class="fastSelectButtons"></div>`);
+                        let fastDiv = agent.getElementsByClassName('fastSelectButtons')[0];
+                        $(ideImage).clone().appendTo(fastDiv);
+                        $(fastDiv.getElementsByClassName('ideImage')[0]).click(function(event) {
+                            addAgent(agentIdx, 'ide');
+                        })
+                        $(arenaImage).clone().appendTo(fastDiv);
+                        $(fastDiv.getElementsByClassName('arenaImage')[0]).click(function(event) {
+                            addAgent(agentIdx, 'arena');
+                        })
+                        $(bossImage).clone().appendTo(fastDiv);
+                        $(fastDiv.getElementsByClassName('bossImage')[0]).click(function(event) {
+                            addAgent(agentIdx, 'boss');
+                        })
+
+                        console.log('[CG Enhancer] Add fast input');
+                        $(agent).append(`<div class="fastInput"></div>`);
+                        let inputDiv = agent.getElementsByClassName('fastInput')[0];
+                        $(inputDiv).append(`<input class="fastAgentInput" type="text" />`);
+                        let inputBox = inputDiv.getElementsByClassName('fastAgentInput')[0];
+                        $(inputBox).keyup({'index': agentIdx}, addFastPlayer);
+
+                        $(inputBox).css('width', '80px');
+                        $(inputBox).css('height', '20px');
+                        $(inputBox).css('padding-left', '5px');
+                        $(inputBox).css('background-color', '#777');
+                        $(inputBox).css('color', '#fff');
+                        $(inputBox).css('margin-bottom', '0px');
+                        
+                        updatePlayersData();
+                    }
                 }
             }
-        
-
+            // console.log(mutations);
             // check if we opened last battles without looking at all mutations
-            if ($(mutations[0].target).attr('class') === "cg-ide-last-battles ng-scope ng-isolate-scope")
+            if ($(mutations[0].target).attr('class') === "cg-ide-last-battles")
             {
                 console.log('[CG Enhancer] Opened last battles');
                 blockTvViewer = true;
@@ -275,7 +279,7 @@
             }
 
             // hide battle tv on last battles tab opening            
-            for (var battleTv of document.getElementsByClassName("battle-tv"))
+            for (let battleTv of document.getElementsByClassName("battle-tv"))
             {
                 // hide
                 if (blockTvViewer)
@@ -288,13 +292,13 @@
             }
 
             // add ranks on last battle tabs
-            for (var battleDiv of document.getElementsByClassName('battle battle-done'))
+            for (let battleDiv of document.getElementsByClassName('battle battle-done'))
             {
                 let color = getColor(battleDiv);
                 if ($(battleDiv).css('background-color') !== color)
                     $(battleDiv).css('background-color',     color);
 
-                for (var playerAvatar of battleDiv.getElementsByClassName('player-agent'))
+                for (let playerAvatar of battleDiv.getElementsByClassName('player-agent'))
                 {
                     let player = $(playerAvatar).attr('title');
                     if (player && player !== userPseudo && playersData[player.toLowerCase()])
@@ -305,9 +309,9 @@
                 }
             }
 
-            for (battleTv of document.getElementsByClassName("battle-tv-hidden"))
+            for (let battleTv of document.getElementsByClassName("battle-tv-hidden"))
             {
-                for (var showButton of document.getElementsByClassName("battle-button-label"))
+                for (let showButton of document.getElementsByClassName("battle-button-label"))
                 {
                     if ($(showButton).text() === 'Close')
                         $(showButton).trigger('click');
@@ -315,7 +319,7 @@
     
             }
             // if the submission panel is open
-            for (var submission of document.getElementsByClassName("submission-card"))
+            for (let submission of document.getElementsByClassName("submission-card"))
             {
                 // add flex style
                 if ($(submission).css('display') !== 'flex')
@@ -326,7 +330,7 @@
                 }
 
                 // date is required for storageHash, hence computed here
-                var date = submission.getElementsByClassName('date')[0]; 
+                let date = submission.getElementsByClassName('date')[0]; 
 
                 // create left side div (date + name)
                 if (submission.getElementsByClassName('date-name-div').length === 0)
@@ -579,7 +583,7 @@
             return;
         }
 
-        var key = event.which;
+        let key = event.which;
         if (key === 13)  // enter key
         {
             let pseudo = $(this).val();
@@ -626,7 +630,7 @@
             return;
         }
 
-        var key = event.which;
+        let key = event.which;
         if (key === 13)  // enter key
         {
             // lose focus
@@ -655,6 +659,9 @@
     {
         let forceExternRequest = false;
 
+        // angular is not activated
+        if (useAgentModule === false)
+            forceExternRequest = true;
         // make sure we do not update every 5 sec
         // at most once every minute
         if (lastLeaderBoardUpdate && (new Date() - lastLeaderBoardUpdate < 60*1000))
