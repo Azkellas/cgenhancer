@@ -22,6 +22,7 @@
 (function() {
     'use strict';
 
+    // options
     const useAgentModule = true;  // set to false to disable angular debug mode (and agent panel)
     var forceExternRequest = false;  // set to true to enable fighting against bots of higher leagues
 

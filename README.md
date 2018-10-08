@@ -18,6 +18,13 @@ When installed, click [here](https://openuserjs.org/scripts/Azke/CG_Enhancer) to
 
 Note that since it is only beta testing, chrom(e|ium) might crash when trying the script. Be ready. If it crashes repeatedly, refreshing the tab before almost instantly the first time might help. If not, open the console and send me the error if there is any.
 
+## Options
+
+The script currently has no option panel. However since it's a userscript, any user can modify it.
+Options are to be found at the beginning of the script (line 25 or around). Look for `//options` in the source code. As of today, two options are available:
+* **useAgentModule**: allow the agent options. This is the only part of the script that uses the angular debug mode. This mode might use a lot of RAM, so disable it to save some if CG is slower than usual.
+* **forceExternRequest**: Make the leaderboard api request extern. It allows you to play against AIs of higher leagues in the agent panel but this might disrupt other features if you are not in the top1000.
+
 ## Features
 
 ### Notifications
@@ -33,7 +40,7 @@ For further personalization, look for `// disallow sound for notifications` and 
 #### Agent panel
 * Swap button like CG spunk
 * Button for fast selection (IDE / Arena / Boss agents)
-* Input for fast player selection ('Magus', 'Azkellas'). You can only access bots from your league and below. To access bots from upper leagues, set `forceExternRequest` to `true` in the source code. Note that this might disrupt other features if you are not in the top1000.
+* Input for fast player selection ('Magus', 'Azkellas'). You can only access bots from your league and below. 
 
 ![AgentExample](https://i.imgur.com/6lgwYNS.gif)
 
