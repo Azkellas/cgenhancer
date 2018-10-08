@@ -8,6 +8,7 @@ It currently **does not** work with firefox, only tested with chromium and chrom
 
 I'm already surprised I made it work for my browser, so do not expect it to work perfectly on yours (at least for now). It is only my second time using javascript (and first with jquery/angular) so the code is without doubt full of atrocities, bad habits and more. Feel free to report them or to improve the code if you're brave enough to have a look at it. :)
 
+Angular debug mode is used for the agent panel (quick selection and such) and might use a lot of RAM. You can disable it by setting `const useAgentModule` to `false`.
 
 ## How to install
 

@@ -20,7 +20,8 @@
 (function() {
     'use strict';
 
-    const useAgentModule = true;
+    const useAgentModule = true;  // set to false to disable angular debug mode (and agent panel)
+    const forceExternRequest = true;  // set to true to enable fighting against bots of higher leagues
 
     var GMsetValue = undefined;
     var GMgetValue = undefined;
@@ -29,7 +30,6 @@
     if (typeof(GM_getValue) !== 'undefined')
     {
         console.log('[CG Enhancer] Tamper/Violentmoneky detected');
-        console.log(GM_getValue);
         GMsetValue = GM_setValue;
         GMgetValue = GM_getValue;
         GMxmlhttpRequest = GM_xmlhttpRequest;    
@@ -37,8 +37,6 @@
     if (typeof(GM) !== 'undefined' && GM.xmlhttpRequest)
     {
         console.log('[CG Enhancer] Greasemoneky detected');
-        console.log(GM);
-        console.log(GM.getValue);
         GMsetValue = GM.setValue;
         GMgetValue = function(key) {return GM.getValue(key).then(function(value) {return value;})};
         GMxmlhttpRequest = GM.xmlhttpRequest;    
@@ -661,8 +659,6 @@
     // update playersData to store agentId and ranks
     function updatePlayersData()
     {
-        let forceExternRequest = false;
-
         // angular is not activated
         if (useAgentModule === false)
             forceExternRequest = true;
@@ -725,6 +721,7 @@
                         if (user.pseudo)
                         {
                             playersData[user.pseudo.toLowerCase()] = user;
+                            playersData[user.pseudo.toLowerCase()].rank = user.localRank;  // to avoid wrong rank in agent panel when selected
                             if (user.pseudo === userPseudo)
                                 userAgent = user;
                         }
