@@ -14,7 +14,7 @@ Angular debug mode is used for the agent panel (quick selection and such) and mi
 
 This tool is a userscript. It has to be installed through a userscript manager, such as Tampermonkey or Violentmonkey.
 If you have none, consider [violentmonkey](https://chrome.google.com/webstore/detail/violentmonkey/jinjaccalgkegednnccohejagnlnfdag) which is open source.
-When installed, click [here](https://github.com/Azkellas/cgenhancer/raw/master/script.user.js) to install CG Enhancer.
+When installed, click [here](https://openuserjs.org/scripts/Azke/CG_Enhancer) to install CG Enhancer.
 
 Note that since it is only beta testing, chrom(e|ium) might crash when trying the script. Be ready. If it crashes repeatedly, refreshing the tab before almost instantly the first time might help. If not, open the console and send me the error if there is any.
 

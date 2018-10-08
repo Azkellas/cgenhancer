@@ -4,7 +4,9 @@
 // @version 0.1
 // @description  Enhancer script for CodinGame platform
 // @match https://www.codingame.com/*
-// @license 2018+, MIT
+// @copyright 2018+, Azkellas, https://github.com/Azkellas/
+// @license GPL-3.0-only
+// @homepage https://github.com/Azkellas/cgenhancer
 // @require http://code.jquery.com/jquery-latest.js
 // tamper/violent grants
 // @grant GM_setValue
