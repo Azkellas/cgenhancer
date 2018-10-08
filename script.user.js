@@ -622,6 +622,8 @@
     // update playersData to store agentId and ranks
     function updatePlayersData()
     {
+        let forceExternRequest = false;
+
         // make sure we do not update every 5 sec
         // at most once every minute
         if (lastLeaderBoardUpdate && (new Date() - lastLeaderBoardUpdate < 60*1000))
@@ -634,7 +636,7 @@
         bossAgent = undefined;
 
         // we get the leaderboard through the API
-        if (agentApi)
+        if (!forceExternRequest && agentApi)
         {
             console.log("[CG Enhancer] Requesting the leaderboard through agentApi");
 
@@ -678,7 +680,12 @@
                     let users = rawLeaderboard.users;
                     for (let user of users)
                     {
-                        playersData[user.pseudo.toLowerCase()] = user;
+                        if (user.pseudo)
+                        {
+                            playersData[user.pseudo.toLowerCase()] = user;
+                            if (user.pseudo === userPseudo)
+                                userAgent = user;
+                        }
                     }
                 }
             });

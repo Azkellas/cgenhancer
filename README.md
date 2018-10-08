@@ -32,7 +32,7 @@ For further personalization, look for `// disallow sound for notifications` and 
 #### Agent panel
 * Swap button like CG spunk
 * Button for fast selection (IDE / Arena / Boss agents)
-* Input for fast player selection ('Magus', 'Azkellas')
+* Input for fast player selection ('Magus', 'Azkellas'). You can only access bots from your league and below. To access bots from upper leagues, set `forceExternRequest` to `true` in the source code. Note that this might disrupt other features if you are not in the top1000.
 
 ![AgentExample](https://i.imgur.com/6lgwYNS.gif)
 
