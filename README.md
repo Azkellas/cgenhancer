@@ -8,6 +8,15 @@ It currently **does not** work with firefox, only tested with chromium and chrom
 
 I'm already surprised I made it work for my browser, so do not expect it to work perfectly on yours (at least for now). It is only my second time using javascript (and first with jquery/angular) so the code is without doubt full of atrocities, bad habits and more. Feel free to report them or to improve the code if you're brave enough to have a look at it. :)
 
+
+## How to install
+
+This tool is a userscript. It has to be installed through a userscript manager, such as Tampermonkey or Violentmonkey (Greasmonkey 4.0+ is not supported yet).
+If you have none, consider [violentmonkey](https://chrome.google.com/webstore/detail/violentmonkey/jinjaccalgkegednnccohejagnlnfdag) which is open source.
+When installed, click [here](https://github.com/Azkellas/cgenhancer/raw/master/script.user.js) to install.
+
+Note that since it is only beta testing, chrom(e|ium) might crash when trying the script. Be ready. If it crashes repeatedly, refreshing the tab before almost instantly the first time might help. If not, open the console and send me the error if there is any.
+
 ## Features
 
 ### Notifications
