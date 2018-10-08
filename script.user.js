@@ -1,4 +1,4 @@
-    // ==UserScript==
+// ==UserScript==
 // @name CG Enhancer
 // @namespace https://cgenhancer.azke.fr
 // @version 0.1
@@ -9,15 +9,46 @@
 // @require https://cdnjs.cloudflare.com/ajax/libs/then-request/2.2.0/request.min.js
 // @require https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.12.6/js/standalone/selectize.min.js
 // @require https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/js/select2.min.js
+// tamper/violent grants
 // @grant GM_setValue
 // @grant GM_getValue
 // @grant GM_xmlhttpRequest
+// grease grants
+// @grant GM.setValue
+// @grant GM.getValue
+// @grant GM.xmlhttpRequest
+
 // ==/UserScript==
 
 // @require https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.7.2/angular.js
 
 (function() {
     'use strict';
+
+    var GMsetValue = undefined;
+    var GMgetValue = undefined;
+    var GMxmlhttpRequest = undefined;    
+
+    if (typeof(GM_getValue) !== 'undefined')
+    {
+        console.log('[CG Enhancer] Tamper/Violentmoneky detected');
+        GMsetValue = GM_setValue;
+        GMgetValue = GM_getValue;
+        GMxmlhttpRequest = GM_xmlhttpRequest;    
+    }
+    if (typeof(GM) !== 'undefined' && GM.getValue)
+    {
+        console.log('[CG Enhancer] Greasemoneky detected');
+        GMsetValue = GM.setValue;
+        GMgetValue = GM.getValue;
+        GMxmlhttpRequest = GM.xmlhttpRequest;    
+    }
+
+    if (!GMsetValue)
+    {
+        console.log('[CG Enhancer] Error: Could not detect userscript manager');
+        return;
+    }
 
     // required to access codingame local api
     // done first before angular has time to load
@@ -464,7 +495,7 @@
     function getDiv(data, template)
     {
         // data: {storageHash, default, defaultStyle}
-        let name = GM_getValue(data.storageHash, data.default);
+        let name = GMgetValue(data.storageHash, data.default);
         let style = '';
         if (name === data.default)
             style = data.defaultStyle;
@@ -606,7 +637,7 @@
                 $(this).text(event.data.default);
 
             // save value (even if default to erase previous value)
-            GM_setValue(event.data.storageHash, $(this).text());
+            GMsetValue(event.data.storageHash, $(this).text());
 
             // apply coloration
             if ($(this).text() !== event.data.default)
@@ -670,7 +701,7 @@
                 api = 'getFilteredPuzzleLeaderboard';
             else
                 api = 'getFilteredChallengeLeaderboard';
-            GM_xmlhttpRequest({
+            GMxmlhttpRequest({
                 url : 'https://www.codingame.com/services/LeaderboardsRemoteService/' + api,
                 method : 'POST',
                 responseType : 'json',
