@@ -1,6 +1,6 @@
 # CG Enhancer
 
-Github repository of [CG Enhancer](link-to-codingame-forum-post)
+Github repository of [CG Enhancer](https://www.codingame.com/forum/t/cg-enhancer/59441)
 
 The goal of this script is to make the user's life easier, especially during multi/contests. It comes with a bunch of features (see below for an exhaustive or-so list).
 
