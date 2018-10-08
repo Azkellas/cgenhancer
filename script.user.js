@@ -110,7 +110,7 @@
         if ($(location).attr('pathname') !== pathName)
         {
             pathName = $(location).attr('pathname');
-            console.log('new page: ' + pathName);
+            console.log('[CG Enhancer] New page detected: ' + pathName);
             
             // reset agentApi since it's related to the current ide
             agentApi = undefined;
@@ -123,7 +123,7 @@
         if (userPseudo === undefined && pseudoDiv)
         {
             userPseudo = $(pseudoDiv).attr('title');
-            console.log("User pseudonym: " + userPseudo);
+            console.log("[CG Enhancer] User pseudonym: " + userPseudo);
         }
 
         // console.log(mutations);
@@ -149,7 +149,7 @@
             // add swap button if not here (by cgspunk and cgenhancer)
             if ($('#cgspkSwapButton').length === 0 && $('#cgeSwapButton').length === 0)
             {
-                console.log('Add swap button');
+                console.log('[CG Enhancer] Add swap button');
                 // code courtesy to cgspunk ( https://github.com/danBhentschel/CGSpunk/ )
                 let swapButton = document.createElement('BUTTON');
                 swapButton.setAttribute('id', 'cgeSwapButton');
@@ -190,7 +190,7 @@
             let agentForApi = document.getElementsByClassName("agent")[0];
             if (agentForApi && agentApi === undefined)
             {
-                console.log('CG Enhancer is now working for IDEs.');
+                console.log('[CG Enhancer] CG Enhancer is now working for IDEs.');
                 agentApi = unsafeWindow.angular.element(agentForApi).scope().api;
             }
 
@@ -198,12 +198,11 @@
             let agents = document.getElementsByClassName("agent");
             for (let agentIdx = 0; agentIdx < agents.length; agentIdx++) { 
                 let agent = agents[agentIdx];
-                if (agent.getElementsByClassName('card').length !== 0 && agent.getElementsByClassName('fastSelectButtons').length === 0)
+                if (agent.getElementsByClassName('fastSelectButtons').length === 0)
                 {
-                    console.log('add images');
+                    console.log('[CG Enhancer] Add images');
                     $(agent).append(`<div class="fastSelectButtons"></div>`);
                     let fastDiv = agent.getElementsByClassName('fastSelectButtons')[0];
-                    console.log(fastDiv);
                     $(ideImage).clone().appendTo(fastDiv);
                     $(fastDiv.getElementsByClassName('ideImage')[0]).click(function(event) {
                         addAgent(agentIdx, 'ide');
@@ -217,7 +216,7 @@
                         addAgent(agentIdx, 'boss');
                     })
 
-                    console.log('add fast input');
+                    console.log('[CG Enhancer] Add fast input');
                     $(agent).append(`<div class="fastInput"></div>`);
                     let inputDiv = agent.getElementsByClassName('fastInput')[0];
                     $(inputDiv).append(`<input class="fastAgentInput" type="text" />`);
@@ -239,7 +238,7 @@
             // check if we opened last battles without looking at all mutations
             if ($(mutations[0].target).attr('class') === "cg-ide-last-battles ng-scope ng-isolate-scope")
             {
-                console.log('opened last battles');
+                console.log('[CG Enhancer] Opened last battles');
                 blockTvViewer = true;
                 updatePlayersData();
             }
@@ -386,7 +385,7 @@
                 unsafeWindow.session.enabledNotifications.splice(idx, 1);
         }
 
-        console.log('CG Enhancer is now working.');
+        console.log('[CG Enhancer] CG Enhancer is now working.');
         observer.observe(document, config);
         clearInterval(waitingForDocument);
     }, 1000);
@@ -436,7 +435,7 @@
     function rotateAgents()
     {
         // code partly courtesy to cgspunk ( https://github.com/danBhentschel/CGSpunk/ )
-        console.log('rotating agents');
+        console.log('[CG Enhancer] Rotating agents');
         let agents = [];
         // get agents
         for (let agent of document.getElementsByClassName("agent"))
@@ -531,7 +530,7 @@
 
         if (this === undefined)
         {
-            console.log('Error: clickEvent must be called inside a click method.');
+            console.log('[CG Enhancer] Error: clickEvent must be called inside a click method.');
             return;
         }
 
@@ -545,7 +544,7 @@
     {
         if (this === undefined)
         {
-            console.log('Error: addFastPlayer must be called inside a keyup method.');
+            console.log('[CG Enhancer] Error: addFastPlayer must be called inside a keyup method.');
             return;
         }
 
@@ -555,9 +554,9 @@
             let pseudo = $(this).val();
             
             // add existing player
-            if (playersData[pseudo.toLowerCase()])
+            if (pseudo && playersData[pseudo.toLowerCase()])
             {
-                console.log('player ' + pseudo + ' found');
+                console.log('[CG Enhancer] Player ' + pseudo + ' found');
                 addAgent(event.data.index, pseudo.toLowerCase());
                 $(this).text('');  // reset pseudo
                 $(this).css('color', '#fff');  // reset color
@@ -566,7 +565,7 @@
             // player not found
             else
             {
-                console.log('player ' + pseudo + ' could not be found');
+                console.log('[CG Enhancer] Player ' + pseudo + ' could not be found');
                 $(this).css('color', '#faa');  // red coloration if player not found
             }
 
@@ -592,7 +591,7 @@
 
         if (this === undefined)
         {
-            console.log('Error: keyPressEvent must be called inside a keypress method.');
+            console.log('[CG Enhancer] Error: keyPressEvent must be called inside a keypress method.');
             return;
         }
 
@@ -637,7 +636,7 @@
         // we get the leaderboard through the API
         if (agentApi)
         {
-            console.log("Requesting the leaderboard through agentApi");
+            console.log("[CG Enhancer] Requesting the leaderboard through agentApi");
 
             agentApi.getLeaderboard().then(function(result) {
                 // direct access to user agent
@@ -645,9 +644,12 @@
 
                 for (let user of result.users)
                 {
-                    playersData[user.pseudo.toLowerCase()] = user;
-                    if (user.arenaboss && (userAgent === undefined || userAgent.league.divisionIndex === user.league.divisionIndex))
-                        bossAgent = user;
+                    if (user.pseudo)
+                    {
+                        playersData[user.pseudo.toLowerCase()] = user;
+                        if (user.arenaboss && (userAgent === undefined || userAgent.league.divisionIndex === user.league.divisionIndex))
+                           bossAgent = user;
+                    }
                 }
             })
             .catch(function(error) {
@@ -658,7 +660,7 @@
         // we make an extern api request since we don't have the agentAPI
         else
         {
-            console.log("Requesting the leaderboard through an extern request");
+            console.log("[CG Enhancer] Requesting the leaderboard through an extern request");
             let gameSplit = pathName.split('/');
             let multi = gameSplit.slice(-1)[0];
             let api = '';
