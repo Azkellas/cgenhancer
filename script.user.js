@@ -21,7 +21,7 @@
     'use strict';
 
     const useAgentModule = true;  // set to false to disable angular debug mode (and agent panel)
-    var forceExternRequest = true;  // set to true to enable fighting against bots of higher leagues
+    var forceExternRequest = false;  // set to true to enable fighting against bots of higher leagues
 
     var GMsetValue = undefined;
     var GMgetValue = undefined;
