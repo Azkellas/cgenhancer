@@ -18,47 +18,55 @@
 
 (function() {
     'use strict';
+
+    // required to access codingame local api
+    // done first before angular has time to load
     let ngDebugStr = 'NG_ENABLE_DEBUG_INFO!';
     if (unsafeWindow.name.indexOf(ngDebugStr) === -1) {
         unsafeWindow.name = ngDebugStr + unsafeWindow.name;
     }
 
-    var $ = window.jQuery;
-    
+    // jquery
+    const $ = window.jQuery;
 
-    var ideImage = document.createElement('img');
+    // agent images
+    const ideImage = document.createElement('img');
     $(ideImage).attr('class', 'selectAgentImage ideImage');
     $(ideImage).attr('src', 'https://i.imgur.com/yNpEfYt.png');
     $(ideImage).attr('style', 'cursor: pointer;');
 
-    var arenaImage = document.createElement('img');
+    const arenaImage = document.createElement('img');
     $(arenaImage).attr('class', 'selectAgentImage arenaImage');
     $(arenaImage).attr('src', 'https://i.imgur.com/VkG3qnf.png');
     $(arenaImage).attr('style', 'cursor: pointer;');
 
-    var bossImage = document.createElement('img');
+    const bossImage = document.createElement('img');
     $(bossImage).attr('class', 'selectAgentImage bossImage');
     $(bossImage).attr('src', 'https://i.imgur.com/bbVA7Qv.png');
     $(bossImage).attr('style', 'cursor: pointer;');
-    
+
+
     // Global variables ------------------------------------------------------------------------------------
-    var gameHash = "";
-    // History panel ----------------------------------------------------
-
-    // last battles panel -------------------------------------------------
-    var blockTvViewer = false;
-    var playersData = {};
-    var agentApi = undefined;
-
+    var pathName = "";  // url pathname
+    var agentApi = undefined;  // local cg api used for global actions, like removing an agent or requesting the leaderboard
     var userPseudo = undefined;
 
-    var bossAgentId = undefined;
-    var userAgentId = undefined;
 
-    var lastLeaderBoardUpdate = undefined;
-    
+    // last battles panel global variables -------------------------------------------------
+    var blockTvViewer = false;  // boolean stating if the last battle tv is to be displayed or not (to prevent autostart when opening the tab) 
+
+
+    // agent managent global variables
+    // stored for fast agent managing
+    var bossAgent = undefined;
+    var userAgent = undefined;
+
+    // leaderboards
+    var playersData = {};  // stores player agents through the leaderboard. keys: lowercase pseudos, values: agents
+    var lastLeaderBoardUpdate = undefined; // timer used to avoid spamming leaderboards request
 
     // templates construction
+    // I'm not sure anymore how useful they are
     const baseStyle = `cursor: auto;`;
     const rankEloBaseCss = baseStyle + `
         text-align: right;
@@ -69,9 +77,18 @@
     const rankPCss = rankEloBaseCss + 'font-size: 30px;';
     const eloPCss = rankEloBaseCss;
     const attrs = `contentEditable='true' spellcheck='false'`;
-    const rankDivTemplate = `<div class='rank-div'><p class='p-rank' `+attrs+` contentEditable='true' spellcheck='false' style=' {{defaultStyle}}`+ rankPCss + `'>{{value}}</p></div>`;
-    const eloDivTemplate  = `<div class='elo-div'><p class='p-elo' `+attrs+` style='` + eloPCss + `{{defaultStyle}}` + `'>` + `{{value}}` + `</p></div>`;
-    const nameDivTemplate = `<div class='submission-name'><p class='p-name' `+attrs+` style='font-size: 18px; margin-top: 3px; float:left; display:inline-block;` + baseStyle + `{{defaultStyle}}` + `'>` + `{{value}}` + `</p></div>`;
+    const rankDivTemplate = `
+        <div class='rank-div'>
+            <p class='p-rank' `+attrs+` contentEditable='true' spellcheck='false' style=' {{defaultStyle}}`+ rankPCss + `'>{{value}}</p>
+        </div>`;
+    const eloDivTemplate  = `
+        <div class='elo-div'>
+            <p class='p-elo' `+attrs+` style='` + eloPCss + `{{defaultStyle}}` + `'>` + `{{value}}` + `</p>
+        </div>`;
+    const nameDivTemplate = `
+        <div class='submission-name'>
+            <p class='p-name' `+attrs+` style='font-size: 18px; margin-top: 3px; float:left; display:inline-block;` + baseStyle + `{{defaultStyle}}` + `'>` + `{{value}}` + `</p>
+        </div>`;
 
 
     // rank over avatar template
@@ -86,17 +103,14 @@
         right: 5px;
     `;
 
-    // last battles panel -------------------------------------------------
-    var blockTvViewer = false;
-    var playersData = {};
 
-
+    // main function: observing all mutations
     var observer = new MutationObserver(function(mutations) {
         // check page name
-        if ($(location).attr('pathname') !== gameHash)
+        if ($(location).attr('pathname') !== pathName)
         {
-            gameHash = $(location).attr('pathname');
-            console.log('new page: ' + gameHash);
+            pathName = $(location).attr('pathname');
+            console.log('new page: ' + pathName);
             
             // reset agentApi since it's related to the current ide
             agentApi = undefined;
@@ -106,7 +120,7 @@
 
         // check user pseudonyme
         var pseudoDiv = document.getElementsByClassName("navigation-profile_nav-profile-nickname")[0];
-        if (userPseudo === undefined && pseudoDiv !== undefined)
+        if (userPseudo === undefined && pseudoDiv)
         {
             userPseudo = $(pseudoDiv).attr('title');
             console.log("User pseudonym: " + userPseudo);
@@ -119,10 +133,10 @@
         {
             // remove community notifications 
             var contributionNav = document.getElementById("navigation-contribute");
-            if (contributionNav !== undefined)
+            if (contributionNav)
             {
                 var bubbleNotif = contributionNav.getElementsByClassName("cg-notification-bubble")[0];
-                if (bubbleNotif !== undefined)
+                if (bubbleNotif)
                 {
                     bubbleNotif.remove();
                 }
@@ -253,7 +267,7 @@
                 for (var playerAvatar of battleDiv.getElementsByClassName('player-agent'))
                 {
                     let player = $(playerAvatar).attr('title');
-                    if (player !== undefined && player !== userPseudo && playersData[player.toLowerCase()] !== undefined)
+                    if (player && player !== userPseudo && playersData[player.toLowerCase()])
                     {
                         if (playerAvatar.getElementsByClassName('player-rank-cgen').length === 0)
                             $(playerAvatar).append(`<div class='player-rank-cgen' style='` + rankAvatarCss + `'>` + playersData[player.toLowerCase()].localRank + `</div>`);
@@ -307,7 +321,7 @@
                 }
 
                 // modify data display for an exact date
-                if (date !== undefined && $(date).text() !== $(date).attr('title'))
+                if (date && $(date).text() !== $(date).attr('title'))
                 {
                     $(date).text($(date).attr('title'));
                     $(date).css("font-size", "12px");
@@ -317,7 +331,7 @@
                 if (submission.getElementsByClassName('submission-name').length === 0)
                 {
                     let bundler = submission.getElementsByClassName('date-name-div')[0];
-                    let storageHash = gameHash + $(date).attr('title') + 'name';
+                    let storageHash = pathName + $(date).attr('title') + 'name';
                     let div = getDiv({'storageHash': storageHash, 'default': 'unnamed', 'defaultStyle': 'color: #cccccc;'}, nameDivTemplate);
                     $(bundler).append(div);
                     let pNode = bundler.getElementsByClassName('p-name')[0];
@@ -329,7 +343,7 @@
                 if (submission.getElementsByClassName('rank-div').length === 0)
                 {
                     let bundler = submission.getElementsByClassName('rank-elo-div')[0];
-                    let storageHash = gameHash + $(date).attr('title') + 'rank';
+                    let storageHash = pathName + $(date).attr('title') + 'rank';
                     let div = getDiv({'storageHash': storageHash, 'default': '#XX', 'defaultStyle': 'color: #cccccc;'}, rankDivTemplate);
                     $(bundler).append(div);
                     let pNode = bundler.getElementsByClassName('p-rank')[0];
@@ -341,7 +355,7 @@
                 if (submission.getElementsByClassName('elo-div').length === 0)
                 {
                     let bundler = submission.getElementsByClassName('rank-elo-div')[0];
-                    let storageHash = gameHash + $(date).attr('title') + 'elo';
+                    let storageHash = pathName + $(date).attr('title') + 'elo';
                     let div = getDiv({'storageHash': storageHash, 'default': '12.34', 'defaultStyle': 'color: #cccccc;'}, eloDivTemplate);
                     $(bundler).append(div);
                     let pNode = bundler.getElementsByClassName('p-elo')[0];
@@ -352,15 +366,11 @@
         }
     });
 
-    // configuration of the observer:
-    var config = { attributes: true, childList: true, characterData: true, subtree: true}
 
-    // timeout is necessary since div main takes time to be created
-    var waitingForMain = setInterval(function(){
-        let ngDebugStr = 'NG_ENABLE_DEBUG_INFO!';
-        if (unsafeWindow.name.indexOf(ngDebugStr) === -1) {
-            unsafeWindow.name = ngDebugStr + unsafeWindow.name;
-        }
+    var waitingForDocument = setInterval(function(){
+        // configuration of the observer:
+        var config = { attributes: true, childList: true, characterData: true, subtree: true}
+
 
         // disallow sound for notifications
         if (unsafeWindow.session.notificationConfig.soundEnabled)
@@ -376,29 +386,13 @@
                 unsafeWindow.session.enabledNotifications.splice(idx, 1);
         }
 
-    
         console.log('CG Enhancer is now working.');
         observer.observe(document, config);
-        clearInterval(waitingForMain);
+        clearInterval(waitingForDocument);
     }, 1000);
 
 
-
-
-
-
-
-
-
     // helpers
-
-
-    function getIndex(agent)
-    {
-        agent = unsafeWindow.angular.element(agent);
-        let index = agent.scope().$parent.$index;
-        return index;
-    }
     function removeAgent(index)
     {
         agentApi.removeAgent(index);
@@ -412,23 +406,24 @@
         removeAgent(index);
         let agent = document.getElementsByClassName('agent')[index];
         agent = unsafeWindow.angular.element(agent);
+
         if (type === 'ide')
             agent.scope().api.addAgent({'agentId': -1});
         if (type === 'arena')
         {
-            if (userAgentId !== undefined)
-                agent.scope().api.addAgent(userAgentId);
+            if (userAgent)
+                agent.scope().api.addAgent(userAgent);
             else
-                type = 'boss';
+                type = 'boss'; // the player did not submit any AI yet
         }
         if (type === 'boss')
         {
-            if (bossAgentId)
-                agent.scope().api.addAgent(bossAgentId);
-            else
-                agent.scope().api.addAgent({'agentId': -2});
+            if (bossAgent)
+                agent.scope().api.addAgent(bossAgent);
+            else  // could not find the boss (the player is in legned league)
+                agent.scope().api.addAgent({'agentId': -2});  // -2 is the defaultAI agentId
         }
-        if (type !== 'ide' && type !== 'arena' && type !== 'boss')
+        if (type !== 'ide' && type !== 'arena' && type !== 'boss')  // type is a real player, not the best way to code it
         {
             agent.scope().api.addAgent(playersData[type]);
         }
@@ -447,7 +442,7 @@
         for (let agent of document.getElementsByClassName("agent"))
         {
             agent = unsafeWindow.angular.element(agent);
-            if (agent.scope().$parent.agent !== null)
+            if (agent.scope().$parent.agent !== null) // check if there is indeed an agent or if the agent is empty
                 agents.push(agent.scope().$parent.agent);
         }
         // shift agents
@@ -463,7 +458,6 @@
             agent = unsafeWindow.angular.element(agent);
             agent.scope().$apply();    
         }
-
     }
 
 
@@ -480,12 +474,15 @@
         return template;
     }
 
+    // return the color highlight of the battle in the last battle tabs
+    // difference to determine if the result is unexpected is
+    // enemyRank > 1.2*userRank + 10  (randomly chosen)
+    // note: this function does not check for draws, but check wins by looking at which player is displayed first
     function getColor(battleDiv)
     {
         // if more than 2 players, not coloration
         if (battleDiv.getElementsByClassName('player-agent').length > 2)
             return '#fff';
-
 
         let userRank = undefined;
         let enemyRank = undefined;
@@ -497,15 +494,16 @@
             let playerAvatar = players[playerIdx];
 
             let player = $(playerAvatar).attr('title');
-            if (player !== undefined && playersData[player.toLowerCase()] !== undefined && player !== userPseudo)
+            if (player && playersData[player.toLowerCase()] && player !== userPseudo)
                 enemyRank = playersData[player.toLowerCase()].localRank;
-            if (player !== undefined && player === userPseudo)
+            if (player && player === userPseudo)
             {
-                userRank = userAgentId.localRank;
+                userRank = userAgent.localRank;
                 userWon = (playerIdx === 0);
             }
         }
-        // one undefined rank
+
+        // at least one undefined rank
         if (userRank === undefined || enemyRank === undefined || userWon === undefined)
             return '#eee';
 
@@ -521,6 +519,7 @@
         return '#fff';
     }
 
+    // stop propagation
     function clickEvent(event)
     {
         // event.data :
@@ -540,11 +539,13 @@
         event.stopPropagation();
     }
 
+    // poorly named function
+    // it is called when the user tries to select an agent by its pseudo
     function addFastPlayer(event)
     {
         if (this === undefined)
         {
-            console.log('Error: keyPressEvent must be called inside a keypress method.');
+            console.log('Error: addFastPlayer must be called inside a keyup method.');
             return;
         }
 
@@ -554,19 +555,19 @@
             let pseudo = $(this).val();
             
             // add existing player
-            if (playersData[pseudo.toLowerCase()] !== undefined)
+            if (playersData[pseudo.toLowerCase()])
             {
                 console.log('player ' + pseudo + ' found');
                 addAgent(event.data.index, pseudo.toLowerCase());
-                $(this).text('');
-                $(this).css('color', '#fff');
-                $(this).blur();
+                $(this).text('');  // reset pseudo
+                $(this).css('color', '#fff');  // reset color
+                $(this).blur();  // focus out
             }
             // player not found
             else
             {
                 console.log('player ' + pseudo + ' could not be found');
-                $(this).css('color', '#faa');
+                $(this).css('color', '#faa');  // red coloration if player not found
             }
 
             // prevent codingame action
@@ -574,11 +575,12 @@
         }
         else
         {
+            // reset color to white
             $(this).css('color', '#fff');
         }
     }
 
-
+    // called in the history tab
     function keyPressEvent(event)
     {
         // event.data :
@@ -595,7 +597,7 @@
         }
 
         var key = event.which;
-        if (key == 13)  // enter key
+        if (key === 13)  // enter key
         {
             // lose focus
             $(this).blur();  // lose focus
@@ -622,27 +624,30 @@
     function updatePlayersData()
     {
         // make sure we do not update every 5 sec
-        if (lastLeaderBoardUpdate !== undefined && (new Date() - lastLeaderBoardUpdate < 60*1000))
+        // at most once every minute
+        if (lastLeaderBoardUpdate && (new Date() - lastLeaderBoardUpdate < 60*1000))
             return;
 
+        // reset stored leaderboard and user/boss agents
         lastLeaderBoardUpdate = new Date();
         playersData = {};
-        userAgentId = undefined;
-        bossAgentId = undefined;
+        userAgent = undefined;
+        bossAgent = undefined;
 
         // we get the leaderboard through the API
-        if (agentApi !== undefined)
+        if (agentApi)
         {
             console.log("Requesting the leaderboard through agentApi");
 
             agentApi.getLeaderboard().then(function(result) {
-                userAgentId = result.codingamerUserRank;
+                // direct access to user agent
+                userAgent = result.codingamerUserRank;
 
                 for (let user of result.users)
                 {
                     playersData[user.pseudo.toLowerCase()] = user;
-                    if (user.arenaboss !== undefined && (userAgentId === undefined || userAgentId.league.divisionIndex === user.league.divisionIndex))
-                        bossAgentId = user;
+                    if (user.arenaboss && (userAgent === undefined || userAgent.league.divisionIndex === user.league.divisionIndex))
+                        bossAgent = user;
                 }
             })
             .catch(function(error) {
@@ -654,7 +659,7 @@
         else
         {
             console.log("Requesting the leaderboard through an extern request");
-            let gameSplit = gameHash.split('/');
+            let gameSplit = pathName.split('/');
             let multi = gameSplit.slice(-1)[0];
             let api = '';
             if (gameSplit.slice(-2)[0] === 'puzzle')
@@ -672,8 +677,6 @@
                     for (let user of users)
                     {
                         playersData[user.pseudo.toLowerCase()] = user;
-                        // playersData[user.pseudo].rank = user.localRank;
-                        // playersData[user.pseudo].agentId = user.agentId;
                     }
                 }
             });
