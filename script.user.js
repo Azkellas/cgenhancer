@@ -197,6 +197,15 @@
                 $('#cgeSwapButton').click(rotateAgents);
             }
 
+            // remove swap button if cgspunk swap button here
+            if ($('#cgspkSwapButton').length !== 0 && $('#cgeSwapButton').length !== 0)
+            {
+                console.log('[CG Enhancer] Remove swap button');
+                // code courtesy to cgspunk ( https://github.com/danBhentschel/CGSpunk/ )
+                let swapButton = $('#cgeSwapButton');
+                swapButton.remove();
+            }
+            
             if (useAgentModule)
             {
                 // resize blocs to fit fast agent selection buttons
