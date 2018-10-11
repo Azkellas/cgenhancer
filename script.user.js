@@ -8,15 +8,10 @@
 // @license GPL-3.0-only
 // @homepage https://github.com/Azkellas/cgenhancer
 // @require http://code.jquery.com/jquery-latest.js
-// tamper/violent grants
+// @grant unsafeWindow
 // @grant GM_setValue
 // @grant GM_getValue
 // @grant GM_xmlhttpRequest
-// grease grants
-// @grant GM.setValue
-// @grant GM.getValue
-// @grant GM.xmlhttpRequest
-
 // ==/UserScript==
 
 (function()
@@ -38,18 +33,14 @@
         GMgetValue = GM_getValue;
         GMxmlhttpRequest = GM_xmlhttpRequest;
     }
-
-    if (typeof GM !== 'undefined' && GM.xmlhttpRequest)
+    else
     {
-        console.log('[CG Enhancer] Greasemoneky detected');
-        GMsetValue = GM.setValue;
-        GMgetValue = function(key) {return GM.getValue(key).then(function(value) { return value;});};
-        GMxmlhttpRequest = GM.xmlhttpRequest;
+        console.log('[CG Enhancer] Greasemonkey not taken into account');
     }
 
     if (!GMsetValue)
     {
-        console.log('[CG Enhancer] Error: Could not detect userscript manager');
+        console.log('[CG Enhancer] Error: Could not detect userscript manager, or Greasemonkey');
         return;
     }
 
@@ -138,7 +129,7 @@
         text-shadow: #000 1px 1px, #000 -1px 1px, #000 -1px -1px, #000 1px -1px;
         margin-left: 5px;
         font-weight: 600;
-        color: white;
+        color: rgb(255, 255, 255);
         position: absolute;
         bottom: 2px;
         right: 5px;
@@ -279,8 +270,8 @@
                         $(inputBox).css('width', '80px');
                         $(inputBox).css('height', '20px');
                         $(inputBox).css('padding-left', '5px');
-                        $(inputBox).css('background-color', '#777');
-                        $(inputBox).css('color', '#fff');
+                        $(inputBox).css('background-color', 'rgb(112, 112, 112)');
+                        $(inputBox).css('color', 'rgb(255, 255, 255)');
                         $(inputBox).css('margin-bottom', '0px');
 
                         updatePlayersData();
@@ -289,7 +280,8 @@
             }
             // console.log(mutations);
             // check if we opened last battles without looking at all mutations
-            if ($(mutations[0].target).attr('class') && $(mutations[0].target).attr('class').indexOf('cg-ide-last-battles') !== -1)
+            const firstMutation = $(mutations[0].target);
+            if (firstMutation.attr('class') && firstMutation.attr('class').indexOf('cg-ide-last-battles') !== -1)
             {
                 console.log('[CG Enhancer] Opened last battles');
                 blockTvViewer = true;
@@ -301,17 +293,24 @@
             {
                 // hide
                 if (blockTvViewer)
-                    $(battleTv).attr('class', 'battle-tv-hidden');
-                // reveal if clicked
-                $(battleTv).click(function() {
-                    blockTvViewer = false;
-                    $(this).attr('class', 'battle-tv');
-                });
+                {
+                    if ($(battleTv).attr('class') !== 'battle-tv-hidden')
+                        $(battleTv).attr('class', 'battle-tv-hidden');
+                    // reveal if clicked
+                    $(battleTv).click(function() {
+                        blockTvViewer = false;
+                        $(this).attr('class', 'battle-tv');
+                    });
+                }
             }
 
             // add ranks on last battle tabs
             for (const battleDiv of document.getElementsByClassName('battle battle-done'))
             {
+                // TODO
+                // might crash for some browsers because of color conversion
+                // check https://stackoverflow.com/a/11943970 for a safe way to code it
+
                 const color = getColor(battleDiv);
                 if ($(battleDiv).css('background-color') !== color)
                     $(battleDiv).css('background-color',     color);
@@ -391,7 +390,7 @@
                 {
                     const bundler = submission.getElementsByClassName('date-name-div')[0];
                     const storageHash = pathName + $(date).attr('title') + 'name';
-                    const div = getDiv({'storageHash': storageHash, 'default': 'unnamed', 'defaultStyle': 'color: #cccccc;'}, nameDivTemplate);
+                    const div = getDiv({'storageHash': storageHash, 'default': 'unnamed', 'defaultStyle': 'color: rgb(224, 224, 224);'}, nameDivTemplate);
                     $(bundler).append(div);
                     const pNode = bundler.getElementsByClassName('p-name')[0];
                     $(pNode).click(clickEvent);
@@ -403,7 +402,7 @@
                 {
                     const bundler = submission.getElementsByClassName('rank-elo-div')[0];
                     const storageHash = pathName + $(date).attr('title') + 'rank';
-                    const div = getDiv({'storageHash': storageHash, 'default': '#XX', 'defaultStyle': 'color: #cccccc;'}, rankDivTemplate);
+                    const div = getDiv({'storageHash': storageHash, 'default': '#XX', 'defaultStyle': 'color: rgb(224, 224, 224);'}, rankDivTemplate);
                     $(bundler).append(div);
                     const pNode = bundler.getElementsByClassName('p-rank')[0];
                     $(pNode).click(clickEvent);
@@ -415,7 +414,7 @@
                 {
                     const bundler = submission.getElementsByClassName('rank-elo-div')[0];
                     const storageHash = pathName + $(date).attr('title') + 'elo';
-                    const div = getDiv({'storageHash': storageHash, 'default': '12.34', 'defaultStyle': 'color: #cccccc;'}, eloDivTemplate);
+                    const div = getDiv({'storageHash': storageHash, 'default': '12.34', 'defaultStyle': 'color: rgb(224, 224, 224);'}, eloDivTemplate);
                     $(bundler).append(div);
                     const pNode = bundler.getElementsByClassName('p-elo')[0];
                     $(pNode).click(clickEvent);
@@ -559,17 +558,18 @@
      * difference to determine if the result is unexpected is
      * enemyRank > 1.2*userRank + 10  (randomly chosen)
      * note: this function does not check for draws, but check wins by looking at which player is displayed first
+     * note: giving rgb values is mandatory for firefox
      * @param {jquery object} battleDiv
      */
     function getColor(battleDiv)
     {
         // if more than 2 players, not coloration
         if (battleDiv.getElementsByClassName('player-agent').length > 2)
-            return '#fff';
+            return 'rgb(255, 255, 255)';
 
         // userAgent undefined
         if (!userAgent)
-            return '#fff';
+            return 'rgb(255, 255, 255)';
 
         let userRank;
         let enemyRank;
@@ -592,18 +592,18 @@
 
         // at least one undefined rank
         if (!userRank || !enemyRank || !userWon)
-            return '#eee';
+            return 'rgb(240, 240, 240)';
 
         // unexpected loss
         if (enemyRank > 1.2*userRank + 10 && !userWon)
-            return '#fee';
+            return '#rgb(255, 240, 240)';
 
         // unexepcted win
         if (userRank > 1.2*enemyRank + 10 && userWon)
-            return '#efe';
+            return 'rgb(240, 255, 240)';
 
         // expected result
-        return '#fff';
+        return 'rgb(255, 255, 255)';
     }
 
     /**
@@ -645,14 +645,14 @@
                 console.log('[CG Enhancer] Player ' + pseudo + ' found');
                 addAgent(event.data.index, pseudo.toLowerCase());
                 $(this).text('');  // reset pseudo
-                $(this).css('color', '#fff');  // reset color
+                $(this).css('color', 'rgb(255, 255, 255');  // reset color
                 $(this).blur();  // focus out
             }
             // player not found
             else
             {
                 console.log('[CG Enhancer] Player ' + pseudo + ' could not be found');
-                $(this).css('color', '#faa');  // red coloration if player not found
+                $(this).css('color', 'rgb(255, 160, 160)');  // red coloration if player not found
             }
 
             // prevent codingame action
@@ -661,7 +661,7 @@
         else
         {
             // reset color to white
-            $(this).css('color', '#fff');
+            $(this).css('color', 'rgb(255, 255, 255)');
         }
     }
 
@@ -701,7 +701,7 @@
             if ($(this).text() !== event.data.default)
                 $(this).css('color', '');
             else
-                $(this).css('color', '#cccccc');
+                $(this).css('color', 'rgb(224, 224, 224)');
 
             // prevent codingame action
             event.stopPropagation();
@@ -748,7 +748,7 @@
                     }
                 })
                 .catch(function(error) {
-                    console.log(error);
+                    console.log('[CG Enhancer] api request failed with error: ' + error);
                 });
 
         }
