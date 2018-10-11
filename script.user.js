@@ -19,7 +19,7 @@
     'use strict';
 
     // options
-    const useAgentModule = true;  // set to false to disable angular debug mode (and agent panel)
+    const useAgentModule = false;  // set to false to disable angular debug mode (and agent panel)
     var forceExternRequest = false;  // set to true to enable fighting against bots of higher leagues
 
     var GMsetValue;
@@ -346,11 +346,11 @@
             {
                 // add flex style
                 if ($(submission).css('display') !== 'flex')
-                {
-                    $(submission).css('display', 'flex');
-                    $(submission).css('flex-direction', 'column');
-                    $(submission).css('flex-wrap', 'wrap');
-                }
+                    $(submission).css('display',     'flex');
+                if ($(submission).css('flex-direction') !== 'column')
+                    $(submission).css('flex-direction',     'column');
+                if ($(submission).css('flex-wrap') !== 'wrap')
+                    $(submission).css('flex-wrap',     'wrap');
 
                 // date is required for storageHash, hence computed here
                 const date = submission.getElementsByClassName('date')[0];
