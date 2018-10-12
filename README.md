@@ -4,19 +4,20 @@ Github repository of [CG Enhancer](https://www.codingame.com/forum/t/cg-enhancer
 
 The goal of this script is to make the user's life easier, especially during multi/contests. It comes with a bunch of features (see below for an exhaustive or-so list).
 
-It currently **does not** work with firefox, only tested with chromium and chrome.
+The script currently works on chrome, chromium and firefox.
+It might work on chromium-based browser, such as opera and safari, but was not tested.
 
-I'm already surprised I made it work for my browser, so do not expect it to work perfectly on yours (at least for now). It is only my second time using javascript (and first with jquery/angular) so the code is without doubt full of atrocities, bad habits and more. Feel free to report them or to improve the code if you're brave enough to have a look at it. :)
+It is only my second time using javascript (and first with jquery/angular) so the code is without doubt full of atrocities, bad habits and more. Feel free to report them or to improve the code if you're brave enough to have a look at it. :)
 
 Angular debug mode is used for the agent panel (quick selection and such) and might use a lot of RAM. You can disable it by setting `const useAgentModule` to `false`.
 
 ## How to install
 
-This tool is a userscript. It has to be installed through a userscript manager, such as Tampermonkey or Violentmonkey.
+This tool is a userscript. It has to be installed through a userscript manager, such as Tampermonkey or Violentmonkey. Greasemonkey **is not** supported.
 If you have none, consider [violentmonkey](https://chrome.google.com/webstore/detail/violentmonkey/jinjaccalgkegednnccohejagnlnfdag) which is open source.
 When installed, click [here](https://openuserjs.org/scripts/Azke/CG_Enhancer) to install CG Enhancer.
 
-Note that since it is only beta testing, chrom(e|ium) might crash when trying the script. Be ready. If it crashes repeatedly, refreshing the tab before almost instantly the first time might help. If not, open the console and send me the error if there is any.
+Note that since it is only beta testing, yoir browser might crash when trying the script. Be ready. If it crashes repeatedly, refreshing the tab before almost instantly the first time might help. If not, open the console and send me the error if there is any.
 
 ## Options
 
