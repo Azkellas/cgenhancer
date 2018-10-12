@@ -19,12 +19,14 @@
     'use strict';
 
     // options
-    const useAgentModule = false;  // set to false to disable angular debug mode (and agent panel)
+    var useAgentModule = true;  // set to false to disable angular debug mode (and agent panel)
     var forceExternRequest = false;  // set to true to enable fighting against bots of higher leagues
 
     var GMsetValue;
     var GMgetValue;
     var GMxmlhttpRequest;
+
+    var lastCodeBlocUpdate;
 
     if (typeof GM_getValue !== 'undefined')
     {
@@ -204,40 +206,62 @@
                 swapButton.remove();
             }
 
-            if (useAgentModule)
+            const agentForApi = document.getElementsByClassName('agent')[0];
+            if (useAgentModule && agentForApi && !agentApi)
             {
-                // resize blocs to fit fast agent selection buttons
-                const agentSubmitBloc = document.getElementsByClassName('testcases-actions-container')[0];
-                const codeBloc = document.getElementsByClassName('code-bloc')[0];
-                const consoleBloc = document.getElementsByClassName('console-bloc')[0];
-                const statementBloc = document.getElementsByClassName('statement-bloc')[0];
-                if ($(codeBloc).css('bottom') !== '295px')
-                    $(codeBloc).css('bottom',     '295px');
-                if ($(agentSubmitBloc).css('top') === 'calc(100% - 252px)')
-                    $(agentSubmitBloc).css('top',     'calc(100% - 295px)');
-                // only affects the left panel if the console is not reduced and has default value
-                if (document.getElementsByClassName('header-button unminimize-button').length == 0)
-                {
-                    if ($(consoleBloc).css('top') === 'calc(100% - 252px)')
-                        $(consoleBloc).css('top',     'calc(100% - 295px)');
-                    if ($(statementBloc).css('bottom') !== '295px')
-                        $(statementBloc).css('bottom',     '295px');
-                }
+                console.log('[CG Enhancer] CG Enhancer is now working for IDEs.');
+
+                // if angular is indeed in debug mode
+                if (unsafeWindow.angular.element(agentForApi).scope())
+                    agentApi = unsafeWindow.angular.element(agentForApi).scope().api;
                 else
                 {
-                    if ($(consoleBloc).css('top') !== 'calc(100% - 52px)')
-                        $(consoleBloc).css('top',     'calc(100% - 52px)');
-                    if ($(statementBloc).css('bottom') !== '52px')
-                        $(statementBloc).css('bottom',     '52px');
+                    console.log('[CG Enhancer] Please refresh the tab to use agent panel');
+                    useAgentModule = false;
                 }
+            }
 
-                const agentForApi = document.getElementsByClassName('agent')[0];
-                if (agentForApi && !agentApi)
+            if (useAgentModule)
+            {
+
+                if (!lastCodeBlocUpdate || (new Date() - lastCodeBlocUpdate > 100))  // max one aech 100ms
                 {
-                    console.log('[CG Enhancer] CG Enhancer is now working for IDEs.');
-                    agentApi = unsafeWindow.angular.element(agentForApi).scope().api;
-                }
+                    // the timer is required on firefox (otherwise it creates an infinite loop with competing against angular)
 
+                    lastCodeBlocUpdate = new Date();
+
+                    const bloc_container = $('.blocs-container')[0];
+                    const height = $(bloc_container).height();
+                    const top252 = String(height - 252) + 'px';
+                    const top295 = String(height - 295) + 'px';
+                    const top52  = String(height -  52) + 'px';
+                    const agentSubmitBloc = document.getElementsByClassName('testcases-actions-container')[0];
+                    const codeBloc = document.getElementsByClassName('code-bloc')[0];
+                    const consoleBloc = document.getElementsByClassName('console-bloc')[0];
+                    const statementBloc = document.getElementsByClassName('statement-bloc')[0];
+
+                    if ($(codeBloc).css('bottom') !== '295px')
+                        $(codeBloc).css('bottom',     '295px');
+
+                    if ($(agentSubmitBloc).css('top') !== top295)
+                        $(agentSubmitBloc).css('top', top295);
+
+                    if (document.getElementsByClassName('header-button unminimize-button').length == 0)
+                    {
+                        if ($(consoleBloc).css('top') !== top295)
+                            $(consoleBloc).css('top', top295);
+                        if ($(statementBloc).css('bottom') !== '295px')
+                            $(statementBloc).css('bottom',     '295px');
+                    }
+                    else
+                    {
+                        if ($(consoleBloc).css('top') !== top52)
+                            $(consoleBloc).css('top', top52);
+                        if ($(statementBloc).css('bottom') !== '52px')
+                            $(statementBloc).css('bottom',     '52px');
+                    }
+                }
+                
                 const agents = document.getElementsByClassName('agent');
                 for (let agentIdx = 0; agentIdx < agents.length; agentIdx++)
                 {
@@ -273,7 +297,6 @@
                         $(inputBox).css('background-color', 'rgb(112, 112, 112)');
                         $(inputBox).css('color', 'rgb(255, 255, 255)');
                         $(inputBox).css('margin-bottom', '0px');
-
                         updatePlayersData();
                     }
                 }
