@@ -22,6 +22,20 @@
     var useAgentModule = true;  // set to false to disable angular debug mode (and agent panel)
     var forceExternRequest = false;  // set to true to enable fighting against bots of higher leagues
 
+    // existing notifications
+    // 'clash-invite', 'clash-over', 'invitation-accepted'
+    // 'contest-scheduled', 'contest-started', 'contest-over', 'contest-soon'
+    // 'new-league', 'new-league-opened', 'new-blog', 'new-comment', 'new-comment-response', 'new-puzzle', 'new-hint', 'new-level'
+    // 'contribution-received', 'contribution-accepted', 'contribution-refused'
+    // 'following', 'friend-registered'
+    // 'achievement-unlocked'
+    // 'promoted-league', 'eligible-for-next-league'
+    // 'puzzle-of-the-week'
+    // 'career-new-candidate', 'career-update-candidate'
+    // 'feature', 'custom'
+    const enableSound = false;
+    const notifToRemove = ['clash-invite', 'following'];
+
     var GMsetValue;
     var GMgetValue;
     var GMxmlhttpRequest;
@@ -455,21 +469,10 @@
         var config = { attributes: true, childList: true, characterData: true, subtree: true};
 
         // disallow sound for notifications
-        if (unsafeWindow.session.notificationConfig.soundEnabled)
-            unsafeWindow.session.notificationConfig.soundEnabled = false;
+        if (unsafeWindow.session.notificationConfig.soundEnabled !== enableSound)
+            unsafeWindow.session.notificationConfig.soundEnabled = enableSound;
 
-        // notifications
-        // 'clash-invite', 'clash-over', 'invitation-accepted'
-        // 'contest-scheduled', 'contest-started', 'contest-over', 'contest-soon'
-        // 'new-league', 'new-league-opened', 'new-blog', 'new-comment', 'new-comment-response', 'new-puzzle', 'new-hint', 'new-level'
-        // 'contribution-received', 'contribution-accepted', 'contribution-refused'
-        // 'following', 'friend-registered'
-        // 'achievement-unlocked'
-        // 'promoted-league', 'eligible-for-next-league'
-        // 'puzzle-of-the-week'
-        // 'career-new-candidate', 'career-update-candidate'
-        // 'feature', 'custom'
-        const notifToRemove = ['clash-invite', 'following'];
+        // remove notifications
         for (const notif of notifToRemove)
         {
             const idx = unsafeWindow.session.enabledNotifications.indexOf(notif);

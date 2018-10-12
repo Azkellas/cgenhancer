@@ -9,7 +9,7 @@ It might work on chromium-based browser, such as opera and safari, but was not t
 
 It is only my second time using javascript (and first with jquery/angular) so the code is without doubt full of atrocities, bad habits and more. Feel free to report them or to improve the code if you're brave enough to have a look at it. :)
 
-Angular debug mode is used for the agent panel (quick selection and such) and might use a lot of RAM. You can disable it by setting `const useAgentModule` to `false`.
+Angular debug mode is used for the agent panel (quick selection and such) and might use a lot of RAM. You can disable it by setting `useAgentModule` to `false`.
 
 ## How to install
 
@@ -25,6 +25,7 @@ The script currently has no option panel. However since it's a userscript, any u
 Options are to be found at the beginning of the script (line 25 or around). Look for `//options` in the source code. As of today, two options are available:
 * **useAgentModule**: allow the agent options. This is the only part of the script that uses the angular debug mode. This mode might use a lot of RAM, so disable it to save some if CG is slower than usual.
 * **forceExternRequest**: Make the leaderboard api request extern. It allows you to play against AIs of higher leagues in the agent panel but this might disrupt other features if you are not in the top1000.
+* **notifToRemove**: Array storing the different notifications to remove. They are about 30 different types of notifications on CG, a list is available above this option.
 
 ## Features
 
