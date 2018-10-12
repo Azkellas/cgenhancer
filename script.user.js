@@ -232,7 +232,6 @@
 
                     const bloc_container = $('.blocs-container')[0];
                     const height = $(bloc_container).height();
-                    const top252 = String(height - 252) + 'px';
                     const top295 = String(height - 295) + 'px';
                     const top52  = String(height -  52) + 'px';
                     const agentSubmitBloc = document.getElementsByClassName('testcases-actions-container')[0];
@@ -261,7 +260,7 @@
                             $(statementBloc).css('bottom',     '52px');
                     }
                 }
-                
+
                 const agents = document.getElementsByClassName('agent');
                 for (let agentIdx = 0; agentIdx < agents.length; agentIdx++)
                 {
@@ -389,6 +388,7 @@
                     $(bundler).css('width', '150px');
                     $(bundler).css('display', 'flex');
                     $(bundler).css('flex-direction', 'inherit');
+                    $(bundler).css('margin-top', '-12px');
                 }
 
                 // create right side div (rank + elo)
@@ -413,7 +413,8 @@
                 {
                     const bundler = submission.getElementsByClassName('date-name-div')[0];
                     const storageHash = pathName + $(date).attr('title') + 'name';
-                    const div = getDiv({'storageHash': storageHash, 'default': 'unnamed', 'defaultStyle': 'color: rgb(224, 224, 224);'}, nameDivTemplate);
+                    const getDivOptions = {'storageHash': storageHash, 'default': 'unnamed', 'defaultStyle': 'color: rgb(224, 224, 224);'};
+                    const div = getDiv(getDivOptions, nameDivTemplate);
                     $(bundler).append(div);
                     const pNode = bundler.getElementsByClassName('p-name')[0];
                     $(pNode).click(clickEvent);
@@ -437,7 +438,8 @@
                 {
                     const bundler = submission.getElementsByClassName('rank-elo-div')[0];
                     const storageHash = pathName + $(date).attr('title') + 'elo';
-                    const div = getDiv({'storageHash': storageHash, 'default': '12.34', 'defaultStyle': 'color: rgb(224, 224, 224);'}, eloDivTemplate);
+                    const getDivOptions = {'storageHash': storageHash, 'default': '12.34', 'defaultStyle': 'color: rgb(224, 224, 224);'};
+                    const div = getDiv(getDivOptions, eloDivTemplate);
                     $(bundler).append(div);
                     const pNode = bundler.getElementsByClassName('p-elo')[0];
                     $(pNode).click(clickEvent);
@@ -653,7 +655,7 @@
     {
         if (!this)
         {
-            console.log('[CG Enhancer] Error: addFastPlayer must be called inside a keyup method.');
+            console.log('[CG Enhancer] Error: addFastPlayer must be called inside a keypress method.');
             return;
         }
 
@@ -701,9 +703,9 @@
         //      storageHash
         //    }
 
-        if (this)
+        if (!this)
         {
-            console.log('[CG Enhancer] Error: keyPressEvent must be called inside a keypress method.');
+            console.log('[CG Enhancer] Error: keyPressEvent must be called inside a keyUp method.');
             return;
         }
 
@@ -712,6 +714,7 @@
         {
             // lose focus
             $(this).blur();  // lose focus
+
 
             // make sure no empty value is stored
             if ($(this).text() === '')
