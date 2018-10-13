@@ -22,7 +22,7 @@
     var useAgentModule = true;  // set to false to disable angular debug mode (and agent panel)
     var forceExternRequest = false;  // set to true to enable fighting against bots of higher leagues
 
-    // existing notifications
+    // existing notifications:
     // 'clash-invite', 'clash-over', 'invitation-accepted'
     // 'contest-scheduled', 'contest-started', 'contest-over', 'contest-soon'
     // 'new-league', 'new-league-opened', 'new-blog', 'new-comment', 'new-comment-response', 'new-puzzle', 'new-hint', 'new-level'
@@ -51,12 +51,13 @@
     }
     else
     {
-        console.log('[CG Enhancer] Greasemonkey not taken into account');
+        console.error('[CG Enhancer] Greasemonkey is not supported');
+        return;
     }
 
     if (!GMsetValue)
     {
-        console.log('[CG Enhancer] Error: Could not detect userscript manager, or Greasemonkey');
+        console.error('[CG Enhancer] Error: Could not detect userscript manager');
         return;
     }
 
@@ -66,29 +67,28 @@
         // done first before angular has time to load
         const ngDebugStr = 'NG_ENABLE_DEBUG_INFO!';
         if (unsafeWindow.name.indexOf(ngDebugStr) === -1)
-        {
             unsafeWindow.name = ngDebugStr + unsafeWindow.name;
-        }
     }
 
     // jquery
     const $ = window.jQuery;
+    const angular = unsafeWindow.angular;
 
     // agent images
     const ideImage = document.createElement('img');
-    $(ideImage).attr('class', 'selectAgentImage ideImage');
-    $(ideImage).attr('src', 'https://i.imgur.com/yNpEfYt.png');
-    $(ideImage).attr('style', 'cursor: pointer;');
+    $(ideImage).attr('class', 'selectAgentImage ideImage')
+        .attr('src', 'https://i.imgur.com/yNpEfYt.png')
+        .attr('style', 'cursor: pointer;');  // .css doest not work
 
     const arenaImage = document.createElement('img');
-    $(arenaImage).attr('class', 'selectAgentImage arenaImage');
-    $(arenaImage).attr('src', 'https://i.imgur.com/VkG3qnf.png');
-    $(arenaImage).attr('style', 'cursor: pointer;');
+    $(arenaImage).attr('class', 'selectAgentImage arenaImage')
+        .attr('src', 'https://i.imgur.com/VkG3qnf.png')
+        .attr('style', 'cursor: pointer;');  // .css doest not work
 
     const bossImage = document.createElement('img');
-    $(bossImage).attr('class', 'selectAgentImage bossImage');
-    $(bossImage).attr('src', 'https://i.imgur.com/bbVA7Qv.png');
-    $(bossImage).attr('style', 'cursor: pointer;');
+    $(bossImage).attr('class', 'selectAgentImage bossImage')
+        .attr('src', 'https://i.imgur.com/bbVA7Qv.png')
+        .attr('style', 'cursor: pointer;');  // .css doest not work
 
 
     // Global variables ------------------------------------------------------------------------------------
@@ -108,10 +108,9 @@
 
     // leaderboards
     var playersData = {};  // stores player agents through the leaderboard. keys: lowercase pseudos, values: agents
-    var lastLeaderBoardUpdate; // timer used to avoid spamming leaderboards request
+    var lastLeaderboardUpdate; // timer used to avoid spamming leaderboards request
 
     // templates construction
-    // I'm not sure anymore how useful they are
     const baseStyle = `cursor: auto;`;
     const rankEloBaseCss = baseStyle + `
         text-align: right;
@@ -164,157 +163,50 @@
             // reset agentApi since it's related to the current ide
             agentApi = null;
             // reset leaderboard
-            lastLeaderBoardUpdate = null;
+            lastLeaderboardUpdate = null;
         }
 
-        // check user pseudonyme
-        const pseudoDiv = document.getElementsByClassName('navigation-profile_nav-profile-nickname')[0];
+        // check user pseudonym
+        const pseudoDiv = $('.navigation-profile_nav-profile-nickname').first();
         if (!userPseudo && pseudoDiv)
         {
-            userPseudo = $(pseudoDiv).attr('title');
+            userPseudo = pseudoDiv.attr('title');
             console.log('[CG Enhancer] User pseudonym: ' + userPseudo);
         }
 
-        // console.log(mutations);
-
-        // not in IDE or 'main' is not loaded
-        if (document.getElementsByClassName('main').length === 0)
+        // if not in IDE
+        if ($(location).attr('pathname').indexOf('ide/') === -1)
         {
             // remove community notifications
-            const contributionNav = document.getElementById('navigation-contribute');
+            const contributionNav = $('#navigation-contribute');
             if (contributionNav)
             {
-                const bubbleNotif = contributionNav.getElementsByClassName('cg-notification-bubble')[0];
+                const bubbleNotif = contributionNav.find('.cg-notification-bubble').first();
                 if (bubbleNotif)
-                {
                     bubbleNotif.remove();
-                }
             }
         }
 
-        // we are in the IDE
-        else
+        // we are in the IDE and main is loaded
+        if ($(location).attr('pathname').indexOf('ide/') !== -1 && $('.main').length)
         {
-            // add swap button if not here (by cgspunk and cgenhancer)
-            if ($('#cgspkSwapButton').length === 0 && $('#cgeSwapButton').length === 0)
-            {
-                console.log('[CG Enhancer] Add swap button');
-                // code courtesy to cgspunk ( https://github.com/danBhentschel/CGSpunk/ )
-                const swapButton = document.createElement('BUTTON');
-                swapButton.setAttribute('id', 'cgeSwapButton');
-                swapButton.innerHTML = 'SWAP';
-
-                swapButton.style.padding = '5px 5px 5px 5px';
-                const panel = document.getElementsByClassName('scroll-panel')[0];
-                if (panel)
-                    panel.append(swapButton);
-                $('#cgeSwapButton').click(rotateAgents);
-            }
-
-            // remove swap button if cgspunk swap button here
-            if ($('#cgspkSwapButton').length !== 0 && $('#cgeSwapButton').length !== 0)
-            {
-                console.log('[CG Enhancer] Remove swap button');
-                // code courtesy to cgspunk ( https://github.com/danBhentschel/CGSpunk/ )
-                const swapButton = $('#cgeSwapButton');
-                swapButton.remove();
-            }
-
-            const agentForApi = document.getElementsByClassName('agent')[0];
-            if (useAgentModule && agentForApi && !agentApi)
-            {
-                console.log('[CG Enhancer] CG Enhancer is now working for IDEs.');
-
-                // if angular is indeed in debug mode
-                if (unsafeWindow.angular.element(agentForApi).scope())
-                    agentApi = unsafeWindow.angular.element(agentForApi).scope().api;
-                else
-                {
-                    console.log('[CG Enhancer] Please refresh the tab to use agent panel');
-                    useAgentModule = false;
-                }
-            }
 
             if (useAgentModule)
             {
+                // get agentApi if needed or disable agentModule
+                if (!agentApi)
+                    getAgentApi();
 
-                if (!lastCodeBlocUpdate || (new Date() - lastCodeBlocUpdate > 100))  // max one aech 100ms
-                {
-                    // the timer is required on firefox (otherwise it creates an infinite loop with competing against angular)
 
-                    lastCodeBlocUpdate = new Date();
+                // make sure the IDE has the correct layout
+                if ($('.code-bloc').first().css('bottom') !== '295px')
+                    handleRightBlocLayout();
+                handleLeftBlocLayout();
 
-                    const bloc_container = $('.blocs-container')[0];
-                    const height = $(bloc_container).height();
-                    const top295 = String(height - 295) + 'px';
-                    const top52  = String(height -  52) + 'px';
-                    const agentSubmitBloc = document.getElementsByClassName('testcases-actions-container')[0];
-                    const codeBloc = document.getElementsByClassName('code-bloc')[0];
-                    const consoleBloc = document.getElementsByClassName('console-bloc')[0];
-                    const statementBloc = document.getElementsByClassName('statement-bloc')[0];
-
-                    if ($(codeBloc).css('bottom') !== '295px')
-                        $(codeBloc).css('bottom',     '295px');
-
-                    if ($(agentSubmitBloc).css('top') !== top295)
-                        $(agentSubmitBloc).css('top', top295);
-
-                    if (document.getElementsByClassName('header-button unminimize-button').length == 0)
-                    {
-                        if ($(consoleBloc).css('top') !== top295)
-                            $(consoleBloc).css('top', top295);
-                        if ($(statementBloc).css('bottom') !== '295px')
-                            $(statementBloc).css('bottom',     '295px');
-                    }
-                    else
-                    {
-                        if ($(consoleBloc).css('top') !== top52)
-                            $(consoleBloc).css('top', top52);
-                        if ($(statementBloc).css('bottom') !== '52px')
-                            $(statementBloc).css('bottom',     '52px');
-                    }
-                }
-
-                const agents = document.getElementsByClassName('agent');
-                for (let agentIdx = 0; agentIdx < agents.length; agentIdx++)
-                {
-                    const agent = agents[agentIdx];
-                    if (agent.getElementsByClassName('fastSelectButtons').length === 0)
-                    {
-                        console.log('[CG Enhancer] Add images');
-                        $(agent).append(`<div class='fastSelectButtons'></div>`);
-                        const fastDiv = agent.getElementsByClassName('fastSelectButtons')[0];
-                        $(ideImage).clone().appendTo(fastDiv);
-                        $(fastDiv.getElementsByClassName('ideImage')[0]).click(function() {
-                            addAgent(agentIdx, 'ide');
-                        });
-                        $(arenaImage).clone().appendTo(fastDiv);
-                        $(fastDiv.getElementsByClassName('arenaImage')[0]).click(function() {
-                            addAgent(agentIdx, 'arena');
-                        });
-                        $(bossImage).clone().appendTo(fastDiv);
-                        $(fastDiv.getElementsByClassName('bossImage')[0]).click(function() {
-                            addAgent(agentIdx, 'boss');
-                        });
-
-                        console.log('[CG Enhancer] Add fast input');
-                        $(agent).append(`<div class='fastInput'></div>`);
-                        const inputDiv = agent.getElementsByClassName('fastInput')[0];
-                        $(inputDiv).append(`<input class='fastAgentInput' type='text' />`);
-                        const inputBox = inputDiv.getElementsByClassName('fastAgentInput')[0];
-                        $(inputBox).keyup({'index': agentIdx}, addFastPlayer);
-
-                        $(inputBox).css('width', '80px');
-                        $(inputBox).css('height', '20px');
-                        $(inputBox).css('padding-left', '5px');
-                        $(inputBox).css('background-color', 'rgb(112, 112, 112)');
-                        $(inputBox).css('color', 'rgb(255, 255, 255)');
-                        $(inputBox).css('margin-bottom', '0px');
-                        updatePlayersData();
-                    }
-                }
+                // add agent buttons
+                manageAgentPanel();
             }
-            // console.log(mutations);
+
             // check if we opened last battles without looking at all mutations
             const firstMutation = $(mutations[0].target);
             if (firstMutation.attr('class') && firstMutation.attr('class').indexOf('cg-ide-last-battles') !== -1)
@@ -324,142 +216,38 @@
                 updatePlayersData();
             }
 
-            // hide battle tv on last battles tab opening
-            for (const battleTv of document.getElementsByClassName('battle-tv'))
+            // block tv viewer if opened
+            if (blockTvViewer)
             {
-                // hide
-                if (blockTvViewer)
+                // hide battle tv on last battles tab opening
+                const battleTv = $('.battle-tv').first();
+                if (battleTv)
                 {
-                    if ($(battleTv).attr('class') !== 'battle-tv-hidden')
-                        $(battleTv).attr('class', 'battle-tv-hidden');
+                    // hide battleTv
+                    battleTv.attr('class', 'battle-tv-hidden');
+
                     // reveal if clicked
-                    $(battleTv).click(function() {
+                    battleTv.click(function() {
                         blockTvViewer = false;
                         $(this).attr('class', 'battle-tv');
                     });
                 }
             }
 
-            // add ranks on last battle tabs
-            for (const battleDiv of document.getElementsByClassName('battle battle-done'))
-            {
-                // TODO
-                // might crash for some browsers because of color conversion
-                // check https://stackoverflow.com/a/11943970 for a safe way to code it
+            // trigger tv-battle close button
+            const showButton = $('.battle-tv-hidden .battle-button-label').first();
+            if (showButton && showButton.text() === 'Close')
+                showButton.trigger('click');
 
-                const color = getColor(battleDiv);
-                if ($(battleDiv).css('background-color') !== color)
-                    $(battleDiv).css('background-color',     color);
 
-                for (const playerAvatar of battleDiv.getElementsByClassName('player-agent'))
-                {
-                    const player = $(playerAvatar).attr('title');
-                    if (player && player !== userPseudo && playersData[player.toLowerCase()])
-                    {
-                        if (playerAvatar.getElementsByClassName('player-rank-cgen').length === 0)
-                        {
-                            const rankDiv =
-                                `<div class='player-rank-cgen' style='` + rankAvatarCss + `'>` +
-                                    playersData[player.toLowerCase()].localRank +
-                                `</div>`;
-                            $(playerAvatar).append(rankDiv);
-                        }
-                    }
-                }
-            }
+            // add ranks on last battle tab, if open
+            // this part is not updated with new leaderboard query
+            if ($('.cg-ide-last-battles').length)
+                manageLastBattlesTab();
 
-            for (const battleTv of document.getElementsByClassName('battle-tv-hidden'))
-            {
-                for (const showButton of battleTv.getElementsByClassName('battle-button-label'))
-                {
-                    if ($(showButton).text() === 'Close')
-                        $(showButton).trigger('click');
-                }
-
-            }
-            // if the submission panel is open
-            for (const submission of document.getElementsByClassName('submission-card'))
-            {
-                // add flex style
-                if ($(submission).css('display') !== 'flex')
-                    $(submission).css('display',     'flex');
-                if ($(submission).css('flex-direction') !== 'column')
-                    $(submission).css('flex-direction',     'column');
-                if ($(submission).css('flex-wrap') !== 'wrap')
-                    $(submission).css('flex-wrap',     'wrap');
-
-                // date is required for storageHash, hence computed here
-                const date = submission.getElementsByClassName('date')[0];
-
-                // create left side div (date + name)
-                if (submission.getElementsByClassName('date-name-div').length === 0)
-                {
-                    $(submission)
-                        .children().not(submission.getElementsByClassName('icon-arrow ide-icon_arrow_black'))
-                        .wrapAll( '<div class="date-name-div" />');
-                    const bundler = submission.getElementsByClassName('date-name-div')[0];
-                    $(bundler).css('float', 'left');
-                    $(bundler).css('width', '150px');
-                    $(bundler).css('display', 'flex');
-                    $(bundler).css('flex-direction', 'inherit');
-                    $(bundler).css('margin-top', '-12px');
-                }
-
-                // create right side div (rank + elo)
-                if (submission.getElementsByClassName('rank-elo-div').length === 0)
-                {
-                    $(submission).append(`<div class='rank-elo-div'></div>`);
-                    const bundler = submission.getElementsByClassName('rank-elo-div')[0];
-                    $(bundler).css('width', '100px');
-                    $(bundler).css('align-self', 'flex-end');
-                    $(bundler).css('display', 'inline-block');
-                }
-
-                // modify data display for an exact date
-                if (date && $(date).text() !== $(date).attr('title'))
-                {
-                    $(date).text($(date).attr('title'));
-                    $(date).css('font-size', '12px');
-                }
-
-                // add name storage
-                if (submission.getElementsByClassName('submission-name').length === 0)
-                {
-                    const bundler = submission.getElementsByClassName('date-name-div')[0];
-                    const storageHash = pathName + $(date).attr('title') + 'name';
-                    const getDivOptions = {'storageHash': storageHash, 'default': 'unnamed', 'defaultStyle': 'color: rgb(224, 224, 224);'};
-                    const div = getDiv(getDivOptions, nameDivTemplate);
-                    $(bundler).append(div);
-                    const pNode = bundler.getElementsByClassName('p-name')[0];
-                    $(pNode).click(clickEvent);
-                    $(pNode).keypress({'type': 'name', 'default': 'unnamed','storageHash': storageHash}, keyPressEvent);
-                }
-
-                // add rank storage
-                if (submission.getElementsByClassName('rank-div').length === 0)
-                {
-                    const bundler = submission.getElementsByClassName('rank-elo-div')[0];
-                    const storageHash = pathName + $(date).attr('title') + 'rank';
-                    const div = getDiv({'storageHash': storageHash, 'default': '#XX', 'defaultStyle': 'color: rgb(224, 224, 224);'}, rankDivTemplate);
-                    $(bundler).append(div);
-                    const pNode = bundler.getElementsByClassName('p-rank')[0];
-                    $(pNode).click(clickEvent);
-                    $(pNode).keypress({'type': 'rank', 'default': '#XX','storageHash': storageHash}, keyPressEvent);
-                }
-
-                // add elo storage
-                if (submission.getElementsByClassName('elo-div').length === 0)
-                {
-                    const bundler = submission.getElementsByClassName('rank-elo-div')[0];
-                    const storageHash = pathName + $(date).attr('title') + 'elo';
-                    const getDivOptions = {'storageHash': storageHash, 'default': '12.34', 'defaultStyle': 'color: rgb(224, 224, 224);'};
-                    const div = getDiv(getDivOptions, eloDivTemplate);
-                    $(bundler).append(div);
-                    const pNode = bundler.getElementsByClassName('p-elo')[0];
-                    $(pNode).click(clickEvent);
-                    $(pNode).keypress({'type': 'elo', 'default': '12.34','storageHash': storageHash}, keyPressEvent);
-                }
-            }
+            // if the history tab is open
+            if ($('.cg-ide-results').length)
+                manageHistoryTab();
         }
     });
 
@@ -487,15 +275,284 @@
 
 
     // helpers
+
+    /** create swap button if no cgspunk is detected */
+    function handleSwapButton()
+    {
+        // add swap button if not here (by cgspunk and cgenhancer)
+        if ($('#cgspkSwapButton').length === 0 && $('#cgeSwapButton').length === 0)
+        {
+            console.log('[CG Enhancer] Add swap button');
+            // code courtesy to cgspunk ( https://github.com/danBhentschel/CGSpunk/ )
+            const swapButton = document.createElement('BUTTON');
+            swapButton.setAttribute('id', 'cgeSwapButton');
+            swapButton.innerHTML = 'SWAP';
+
+            swapButton.style.padding = '5px 5px 5px 5px';
+            const panel = $('.scroll-panel').first();
+            if (panel)
+                panel.append(swapButton);
+            $('#cgeSwapButton').click(rotateAgents);
+        }
+
+        // remove swap button if cgspunk swap button here
+        if ($('#cgspkSwapButton').length !== 0 && $('#cgeSwapButton').length !== 0)
+        {
+            console.log('[CG Enhancer] Remove swap button');
+            const swapButton = $('#cgeSwapButton');
+            swapButton.remove();
+        }
+    }
+
+    /** called at the opening of the ide tab to add the correct display to the right bloc */
+    function handleRightBlocLayout()
+    {
+        if (!lastCodeBlocUpdate || (new Date() - lastCodeBlocUpdate > 100))  // max one each 0.1ms
+        {
+            // the timer is required on firefox (otherwise it creates an infinite loop competing against angular)
+
+            lastCodeBlocUpdate = new Date();
+
+            const bloc_container = $('.blocs-container').first();
+            const height = bloc_container.height();
+            const top295 = (height - 295) + 'px';
+            const agentSubmitBloc = $('.testcases-actions-container').first();
+            const codeBloc = $('.code-bloc').first();
+
+            if (codeBloc.css('bottom') !== '295px')
+                codeBloc.css('bottom',     '295px');
+
+            if (agentSubmitBloc.css('top') !== top295)
+                agentSubmitBloc.css('top', top295);
+        }
+    }
+
+    /** called after each mutation in case the player opens/closes the console */
+    function handleLeftBlocLayout()
+    {
+        if (!lastCodeBlocUpdate || (new Date() - lastCodeBlocUpdate > 100))  // max one each 0.1ms
+        {
+            // the timer is required on firefox (otherwise it creates an infinite loop competing against angular)
+
+            lastCodeBlocUpdate = new Date();
+
+            const bloc_container = $('.blocs-container').first();
+            const height = bloc_container.height();
+            const top295 = (height - 295) + 'px';
+            const top52  = (height -  52) + 'px';
+            const consoleBloc = $('.console-bloc').first();
+            const statementBloc = $('.statement-bloc').first();
+
+            if (!consoleBloc.find('.header-button.unminimize-button').length)
+            {
+                // the console is open
+                if (consoleBloc.css('top') !== top295)
+                    consoleBloc.css('top', top295);
+                if (statementBloc.css('bottom') !== '295px')
+                    statementBloc.css('bottom',     '295px');
+            }
+            else
+            {
+                // the console is minimized
+                if (consoleBloc.css('top') !== top52)
+                    consoleBloc.css('top', top52);
+                if (statementBloc.css('bottom') !== '52px')
+                    statementBloc.css('bottom',     '52px');
+            }
+        }
+    }
+
+    /** create agent fast selection tools */
+    function manageAgentPanel()
+    {
+        // make sure agentApi is operational
+        if (!agentApi)
+            return;
+
+        // create swap button if no cgspunk is detected
+        handleSwapButton();
+
+        // add buttons for each agent
+        $('.agent').not(':has(.fastSelectButtons)').each(function(agentIdx, agent) {
+            $(agent).append(`<div class='fastSelectButtons'></div>`);
+            const fastDiv = $(agent).find('.fastSelectButtons').first();
+            $(ideImage).clone().appendTo(fastDiv);
+            fastDiv.find('.ideImage').first().click(function() {
+                addAgent(agentIdx, 'ide');
+            });
+            $(arenaImage).clone().appendTo(fastDiv);
+            fastDiv.find('.arenaImage').first().click(function() {
+                addAgent(agentIdx, 'arena');
+            });
+            $(bossImage).clone().appendTo(fastDiv);
+            fastDiv.find('.bossImage').first().click(function() {
+                addAgent(agentIdx, 'boss');
+            });
+
+            // add input
+            $(agent).append(`<div class='fastInput'></div>`);
+            const inputDiv = $(agent).find('.fastInput').first();
+            inputDiv.append(`<input class='fastAgentInput' type='text' />`);
+            const inputBox = inputDiv.find('.fastAgentInput').first();
+            inputBox.keyup({'index': agentIdx}, addFastPlayer);
+
+            inputBox
+                .css('width', '80px')
+                .css('height', '20px')
+                .css('padding-left', '5px')
+                .css('background-color', 'rgb(112, 112, 112)')
+                .css('color', 'rgb(255, 255, 255)')
+                .css('margin-bottom', '0px');
+
+            updatePlayersData();
+        });
+    }
+
+    /** the coloration/rank is only computed once at the opening of the tab / the end of the game */
+    function manageLastBattlesTab()
+    {
+        $('.battle-done').not(':has(.cge-player-rank)').each(function(index, battleDiv) {
+            // TODO
+            // might crash for some browsers because of color conversion
+            // check https://stackoverflow.com/a/11943970 for a safe way to code it
+
+            const color = getColor(battleDiv);
+            $(battleDiv).css('background-color', color);
+
+            $(battleDiv).find('.player-agent').each(function(avatarIndex, playerAvatar) {
+                const player = $(playerAvatar).attr('title');
+                if (player && player !== userPseudo)
+                {
+                    const playerAgent = playersData[player.toLowerCase()];
+                    const rank = playerAgent ? playerAgent.localRank : '';
+                    const rankDiv =
+                        `<div class='cge-player-rank' style='` + rankAvatarCss + `'>` +
+                            rank +
+                        `</div>`;
+                    $(playerAvatar).append(rankDiv);
+                }
+            });
+        });
+    }
+
+    /**
+     * add name/rank/elo divs to submit div
+     * @param {Object} options
+     */
+    function addSubmitDiv(options)
+    {
+        const storageHash = options.storageHash + options.type;
+        const divOptions = {
+            'storageHash': storageHash,
+            'default': options.type,
+            'defaultStyle': options.defaultStyle
+        };
+        const newDiv = getDiv(divOptions, options.template);
+        options.root.append(newDiv)
+            .find('.p-' + options.type).first()
+            .click(clickEvent)
+            .keypress({'type': options.type, 'default': options.type,'storageHash': storageHash}, keyPressEvent);
+    }
+
+    /** handles submits naming, ranking/elo storage */
+    function manageHistoryTab()
+    {
+        $('.submission-card').not(':has(.date-name-div)').each(function(index, submission) {
+            // add flex style
+            $(submission).css('display',     'flex');
+            $(submission).css('flex-direction',     'column');
+            $(submission).css('flex-wrap',     'wrap');
+
+            // date is required for storageHash
+            const date = $(submission).find('.date').first();
+
+            // modify data display for an exact date
+            date.text(date.attr('title'));
+            date.css('font-size', '12px');
+
+            const storageHash = pathName + date.attr('title');
+
+            // create left side div (date + name)
+            $(submission)
+                .children().not('.ide-icon_arrow_black')
+                .wrapAll( '<div class="date-name-div" />');
+            const dateNameDiv = $(submission).find('.date-name-div').first();
+            dateNameDiv
+                .css('float', 'left')
+                .css('width', '150px')
+                .css('display', 'flex')
+                .css('flex-direction', 'inherit')
+                .css('margin-top', '-12px');
+
+            // create right side div (rank + elo)
+            $(submission).append(`<div class='rank-elo-div'></div>`);
+            const rankEloDiv = $(submission).find('.rank-elo-div').first();
+            rankEloDiv
+                .css('width', '100px')
+                .css('align-self', 'flex-end')
+                .css('display', 'inline-block');
+
+            // add name storage
+            const options = {};
+            // commun options
+            options.storageHash = storageHash;
+            options.defaultStyle = 'color: rgb(224, 224, 224);';
+
+            // add name storage
+            options.type = 'name';
+            options.template = nameDivTemplate;
+            options.root = dateNameDiv;
+            addSubmitDiv(options);
+
+            // add rank storage
+            options.type = 'rank';
+            options.template = rankDivTemplate;
+            options.root = rankEloDiv;
+            addSubmitDiv(options);
+
+            // add elo storage
+            options.type = 'elo';
+            options.template = eloDivTemplate;
+            options.root = rankEloDiv;
+            addSubmitDiv(options);
+        });
+    }
+
+
+    /** try to get angular api or disable agent panel */
+    function getAgentApi()
+    {
+        const agentForApi = $('.agent').filter(':first');
+        if (useAgentModule && agentForApi)
+        {
+            // if angular is indeed in debug mode
+            if (angular.element(agentForApi).scope())
+                agentApi = angular.element(agentForApi).scope().api;
+            else
+            {
+                console.error('[CG Enhancer] Please refresh the tab to use the agent module. ' +
+                              'If it doesn\'t work, ask Azkellas or post on the forum/github');
+                useAgentModule = false;
+            }
+        }
+    }
+
+    /**
+     * @param {int} index - index of agent scope to apply
+     */
+    function applyAgent(index)
+    {
+        angular.element('.agent').eq(index)
+            .scope().$apply();
+    }
+
     /**
      * @param {int} index - index of agent to remove
      */
     function removeAgent(index)
     {
         agentApi.removeAgent(index);
-        let agent = document.getElementsByClassName('agent')[index];
-        agent = unsafeWindow.angular.element(agent);
-        agent.scope().$apply();
+        applyAgent(index);
     }
 
     /**
@@ -505,8 +562,7 @@
     function addAgent(index, type)
     {
         removeAgent(index);
-        let agent = document.getElementsByClassName('agent')[index];
-        agent = unsafeWindow.angular.element(agent);
+        const agent = angular.element('.agent').eq(index);
 
         if (type === 'ide')
             agent.scope().api.addAgent({'agentId': -1});
@@ -529,9 +585,7 @@
             agent.scope().api.addAgent(playersData[type]);
         }
 
-        agent = document.getElementsByClassName('agent')[index];
-        agent = unsafeWindow.angular.element(agent);
-        agent.scope().$apply();
+        applyAgent(index);
     }
 
     /**
@@ -543,24 +597,22 @@
         console.log('[CG Enhancer] Rotating agents');
         const agents = [];
         // get agents
-        for (let agent of document.getElementsByClassName('agent'))
-        {
-            agent = unsafeWindow.angular.element(agent);
+
+        $('.agent').each(function(index, agent) {
+            agent = angular.element(agent);
             if (agent.scope().$parent.agent !== null) // check if there is indeed an agent or if the agent is empty
                 agents.push(agent.scope().$parent.agent);
-        }
+        });
+
         // shift agents
         agents.push(agents.shift());
 
         // add agents
         for (let index = 0; index < agents.length; index++) {
             removeAgent(index);
-            let agent = document.getElementsByClassName('agent')[index];
-            agent = unsafeWindow.angular.element(agent);
+            const agent = angular.element('.agent').eq(index);
             agent.scope().api.addAgent(agents[index]);
-            agent = document.getElementsByClassName('agent')[index];
-            agent = unsafeWindow.angular.element(agent);
-            agent.scope().$apply();
+            applyAgent(index);
         }
     }
 
@@ -592,7 +644,7 @@
     function getColor(battleDiv)
     {
         // if more than 2 players, not coloration
-        if (battleDiv.getElementsByClassName('player-agent').length > 2)
+        if ($(battleDiv).find('.player-agent').length > 2)
             return 'rgb(255, 255, 255)';
 
         // userAgent undefined
@@ -603,11 +655,7 @@
         let enemyRank;
         let userWon;
 
-        const players = battleDiv.getElementsByClassName('player-agent');
-        for (let playerIdx = 0; playerIdx < players.length; playerIdx++)
-        {
-            const playerAvatar = players[playerIdx];
-
+        $(battleDiv).find('.player-agent').each(function(playerIdx, playerAvatar) {
             const player = $(playerAvatar).attr('title');
             if (player && playersData[player.toLowerCase()] && player !== userPseudo)
                 enemyRank = playersData[player.toLowerCase()].localRank;
@@ -616,7 +664,7 @@
                 userRank = userAgent.localRank;
                 userWon = (playerIdx === 0);
             }
-        }
+        });
 
         // at least one undefined rank
         if (!userRank || !enemyRank || !userWon)
@@ -642,7 +690,7 @@
     {
         if (!this)
         {
-            console.log('[CG Enhancer] Error: clickEvent must be called inside a click method.');
+            console.error('[CG Enhancer] Error: clickEvent must be called inside a click method.');
             return;
         }
         // prevent codingame action
@@ -658,7 +706,7 @@
     {
         if (!this)
         {
-            console.log('[CG Enhancer] Error: addFastPlayer must be called inside a keypress method.');
+            console.error('[CG Enhancer] Error: addFastPlayer must be called inside a keypress method.');
             return;
         }
 
@@ -708,7 +756,7 @@
 
         if (!this)
         {
-            console.log('[CG Enhancer] Error: keyPressEvent must be called inside a keyUp method.');
+            console.error('[CG Enhancer] Error: keyPressEvent must be called inside a keyUp method.');
             return;
         }
 
@@ -747,11 +795,11 @@
             forceExternRequest = true;
         // make sure we do not update every 5 sec
         // at most once every minute
-        if (lastLeaderBoardUpdate && (new Date() - lastLeaderBoardUpdate < 60*1000))
+        if (lastLeaderboardUpdate && (new Date() - lastLeaderboardUpdate < 60*1000))
             return;
 
         // reset stored leaderboard and user/boss agents
-        lastLeaderBoardUpdate = new Date();
+        lastLeaderboardUpdate = new Date();
         playersData = {};
         userAgent;
         bossAgent;
@@ -777,7 +825,7 @@
                     }
                 })
                 .catch(function(error) {
-                    console.log('[CG Enhancer] api request failed with error: ' + error);
+                    console.error('[CG Enhancer] api request failed with error: ' + error);
                 });
 
         }
