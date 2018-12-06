@@ -96,7 +96,7 @@
     $(binImage).attr('class', 'binImage')
         .attr('src', 'https://i.imgur.com/HFPFSnc.png')
         .attr('style', 'cursor: pointer; right: 20px; bottom: 7px; position: absolute;');  // .css doesnt not work
-    
+
     // Global variables ------------------------------------------------------------------------------------
     var pathName = '';  // url pathname
     var agentApi;  // local cg api used for global actions, like removing an agent or requesting the leaderboard
@@ -177,7 +177,8 @@
         if (!userPseudo && pseudoDiv)
         {
             userPseudo = pseudoDiv.attr('title');
-            console.log('[CG Enhancer] User pseudonym: ' + userPseudo);
+            if (userPseudo)
+                console.log('[CG Enhancer] User pseudonym: ' + userPseudo);
         }
 
         // if not in IDE
@@ -378,7 +379,10 @@
         handleSwapButton();
 
         // add buttons for each agent
-        $('.agent').not(':has(.fastSelectButtons)').each(function(agentIdx, agent) {
+        $('.agent').each(function(agentIdx, agent) {
+            if ($(agent).find('.fastSelectButtons').length)
+                return;
+
             $(agent).append(`<div class='fastSelectButtons'></div>`);
             const fastDiv = $(agent).find('.fastSelectButtons').first();
             $(ideImage).clone().appendTo(fastDiv);
@@ -559,10 +563,10 @@
                 .css('color', '#aaaaaa')
                 .css('cursor', 'pointer')
                 .click(function(event) {
-                    $('.submission-card').each(function(index, submission) {            
+                    $('.submission-card').each(function(index, submission) {
                         // date is required for storageHash
                         const date = $(submission).find('.date').first();
-            
+
                         const storageHash = pathName + date.attr('title');
                         if ($(submission).css('display') === 'none')
                         {
@@ -593,6 +597,10 @@
                               'If it doesn\'t work, ask Azkellas or post on the forum/github');
                 useAgentModule = false;
             }
+        }
+        else
+        {
+            console.warn('[CG Enhancer] Agent panel is not fully loaded yet');
         }
     }
 
