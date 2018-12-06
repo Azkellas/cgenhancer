@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name CG Enhancer
 // @namespace https://cgenhancer.azke.fr
-// @version 0.2.0
+// @version 0.2.1
 // @description  Enhancer script for CodinGame platform
 // @match https://www.codingame.com/*
 // @copyright 2018+, Azkellas, https://github.com/Azkellas/
