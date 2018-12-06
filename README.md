@@ -23,9 +23,10 @@ Note that since it is only beta testing, yoir browser might crash when trying th
 
 The script currently has no option panel. However since it's a userscript, any user can modify it.
 Options are to be found at the beginning of the script (line 25 or around). Look for `//options` in the source code. As of today, two options are available:
-* **useAgentModule**: allow the agent options. This is the only part of the script that uses the angular debug mode. This mode might use a lot of RAM, so disable it to save some if CG is slower than usual.
-* **forceExternRequest**: Make the leaderboard api request extern. It allows you to play against AIs of higher leagues in the agent panel but this might disrupt other features if you are not in the top1000.
-* **notifToRemove**: Array storing the different notifications to remove. They are about 30 different types of notifications on CG, a list is available above this option.
+* **useAgentModule**: allow the agent options. This is the only part of the script that uses the angular debug mode. This mode might use a lot of RAM, so disable it to save some if CG is slower than usual. *Default: `true`*
+* **forceExternRequest**: Make the leaderboard api request extern. It allows you to play against AIs of higher leagues in the agent panel but this might disrupt other features if you are not in the top1000. *Default: `false`*
+* **enableSound**: self-explanatory. *Default: `false`*
+* **notifToRemove**: Array storing the different notifications to remove. They are about 30 different types of notifications on CG, a list is available above this option. *Default: `['clash-invite', 'following']`*
 
 ## Features
 
@@ -77,3 +78,7 @@ For further personalization, look for `// disallow sound for notifications` and 
 * Replace the `<input/>` fast agent choice by a reactive `<ng-select>` (help needed)
 * Add the possibility to chose between the local leaderboard (current div and lower) and global leaderboard (from legend to bottom) to chose agents
 * Synchronize storage data for multi browser support (requires making it an app)
+
+### Console:
+* Possitility to resize it (vertical)
+* Minimize the console output (horizontal)

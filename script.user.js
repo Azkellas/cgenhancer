@@ -14,9 +14,11 @@
 // @grant GM_xmlhttpRequest
 // ==/UserScript==
 
+
 (function()
 {
     'use strict';
+    /* global GM_setValue, GM_getValue, GM_xmlhttpRequest, unsafeWindow */
 
     // options
     var useAgentModule = true;  // set to false to disable angular debug mode (and agent panel)
@@ -90,7 +92,11 @@
         .attr('src', 'https://i.imgur.com/bbVA7Qv.png')
         .attr('style', 'cursor: pointer;');  // .css doest not work
 
-
+    const binImage = document.createElement('img');
+    $(binImage).attr('class', 'binImage')
+        .attr('src', 'https://i.imgur.com/HFPFSnc.png')
+        .attr('style', 'cursor: pointer; right: 20px; bottom: 7px; position: absolute;');  // .css doesnt not work
+    
     // Global variables ------------------------------------------------------------------------------------
     var pathName = '';  // url pathname
     var agentApi;  // local cg api used for global actions, like removing an agent or requesting the leaderboard
@@ -131,10 +137,10 @@
         </div>`;
     const nameDivTemplate = `
         <div class='submission-name'>
-            <p class='p-name' `+attrs+` 
-                style='font-size: 18px; margin-top: 3px; float:left; display:inline-block;` + baseStyle + `{{defaultStyle}}` + `'>` +
-                    `{{value}}` +
-            `</p>
+            <p class='p-name' ` + attrs + `
+                style='font-size: 18px; margin-top: 3px; float:left; display:inline-block;` + baseStyle + `{{defaultStyle}}` + `'>
+                    {{value}}
+            </p>
         </div>`;
 
 
@@ -190,13 +196,11 @@
         // we are in the IDE and main is loaded
         if ($(location).attr('pathname').indexOf('ide/') !== -1 && $('.main').length)
         {
-
             if (useAgentModule)
             {
                 // get agentApi if needed or disable agentModule
                 if (!agentApi)
                     getAgentApi();
-
 
                 // make sure the IDE has the correct layout
                 if ($('.code-bloc').first().css('bottom') !== '295px')
@@ -252,7 +256,8 @@
     });
 
 
-    var waitingForDocument = setInterval(function(){
+    var waitingForDocument = setInterval(function()
+    {
         // configuration of the observer:
         var config = { attributes: true, childList: true, characterData: true, subtree: true};
 
@@ -451,31 +456,39 @@
         options.root.append(newDiv)
             .find('.p-' + options.type).first()
             .click(clickEvent)
-            .keypress({'type': options.type, 'default': options.type,'storageHash': storageHash}, keyPressEvent);
+            .keypress({'type': options.type, 'default': options.type, 'storageHash': storageHash}, keyPressEvent);
     }
 
     /** handles submits naming, ranking/elo storage */
     function manageHistoryTab()
     {
         $('.submission-card').not(':has(.date-name-div)').each(function(index, submission) {
+            // create left side div (date + name)
+            $(submission)
+                .children().not('.ide-icon_arrow_black')
+                .wrapAll( '<div class="date-name-div" />');
+
+            // date is required for storageHash
+            const date = $(submission).find('.date').first();
+
+            const storageHash = pathName + date.attr('title');
+
             // add flex style
             $(submission).css('display',     'flex');
             $(submission).css('flex-direction',     'column');
             $(submission).css('flex-wrap',     'wrap');
 
-            // date is required for storageHash
-            const date = $(submission).find('.date').first();
 
             // modify data display for an exact date
             date.text(date.attr('title'));
             date.css('font-size', '12px');
 
-            const storageHash = pathName + date.attr('title');
 
-            // create left side div (date + name)
+            // create icon side div (arrow + bin)
             $(submission)
-                .children().not('.ide-icon_arrow_black')
-                .wrapAll( '<div class="date-name-div" />');
+                .find('.ide-icon_arrow_black')
+                .wrapAll( '<div class="icons-div" />');
+
             const dateNameDiv = $(submission).find('.date-name-div').first();
             dateNameDiv
                 .css('float', 'left')
@@ -490,7 +503,17 @@
             rankEloDiv
                 .css('width', '100px')
                 .css('align-self', 'flex-end')
-                .css('display', 'inline-block');
+                .css('display', 'inline-grid');
+
+            const iconsDiv = $(submission).find('.icons-div');
+            $(binImage).clone().appendTo(iconsDiv);
+            iconsDiv
+                .find('.binImage')
+                .click(function(event) {
+                    $(submission).css('display', 'none');
+                    GMsetValue(storageHash + 'display', 'none'); /* jshint ignore:line */
+                    event.stopPropagation();
+                });
 
             // add name storage
             const options = {};
@@ -515,7 +538,43 @@
             options.template = eloDivTemplate;
             options.root = rankEloDiv;
             addSubmitDiv(options);
+
+
+            const display = GMgetValue(storageHash + 'display'); /* jshint ignore:line */
+            console.log(storageHash + 'display' + ': ' + display);
+            if (display === 'none')
+            {
+                $(submission).css('display', 'none');
+                return;
+            }
         });
+
+        if ($('.cg-ide-submissions').length && $('.restoreDiv').length === 0)
+        {
+            $('.cg-ide-submissions').append('<div class="restoreDiv">restore all</div>');
+            $('.restoreDiv').first()
+                .css('position', 'absolute')
+                .css('bottom', '30px')
+                .css('right', '40px')
+                .css('color', '#aaaaaa')
+                .css('cursor', 'pointer')
+                .click(function(event) {
+                    $('.submission-card').each(function(index, submission) {            
+                        // date is required for storageHash
+                        const date = $(submission).find('.date').first();
+            
+                        const storageHash = pathName + date.attr('title');
+                        if ($(submission).css('display') === 'none')
+                        {
+                            $(submission).css('display', 'flex');
+                            GMsetValue(storageHash + 'display', 'flex'); /* jshint ignore:line */
+                            return;
+                        }
+                    });
+                    manageHistoryTab();
+                    event.stopPropagation();
+                });
+        }
     }
 
 
@@ -624,7 +683,8 @@
     function getDiv(data, template)
     {
         // data: {storageHash, default, defaultStyle}
-        const name = GMgetValue(data.storageHash, data.default);
+        const name = GMgetValue(data.storageHash, data.default); /* jshint ignore:line */
+        console.log(data.storageHash + ': ' + name);
         let style = '';
         if (name === data.default)
             style = data.defaultStyle;
@@ -688,6 +748,7 @@
      */
     function clickEvent(event)
     {
+        /* jshint validthis: true */
         if (!this)
         {
             console.error('[CG Enhancer] Error: clickEvent must be called inside a click method.');
@@ -704,6 +765,7 @@
      */
     function addFastPlayer(event)
     {
+        /* jshint validthis: true */
         if (!this)
         {
             console.error('[CG Enhancer] Error: addFastPlayer must be called inside a keypress method.');
@@ -747,6 +809,7 @@
      */
     function keyPressEvent(event)
     {
+        /* jshint validthis: true */
         // event.data :
         //    {
         //      type
@@ -772,7 +835,7 @@
                 $(this).text(event.data.default);
 
             // save value (even if default to erase previous value)
-            GMsetValue(event.data.storageHash, $(this).text());
+            GMsetValue(event.data.storageHash, $(this).text()); /* jshint ignore:line */
 
             // apply coloration
             if ($(this).text() !== event.data.default)
@@ -801,8 +864,8 @@
         // reset stored leaderboard and user/boss agents
         lastLeaderboardUpdate = new Date();
         playersData = {};
-        userAgent;
-        bossAgent;
+        userAgent = null;
+        bossAgent = null;
 
         // we get the leaderboard through the API
         if (!forceExternRequest && agentApi)
@@ -827,7 +890,6 @@
                 .catch(function(error) {
                     console.error('[CG Enhancer] api request failed with error: ' + error);
                 });
-
         }
         // we make an extern api request since we don't have the agentAPI
         else
@@ -840,7 +902,7 @@
                 api = 'getFilteredPuzzleLeaderboard';
             else
                 api = 'getFilteredChallengeLeaderboard';
-            GMxmlhttpRequest({
+            GMxmlhttpRequest({ /* jshint ignore:line */
                 url: 'https://www.codingame.com/services/LeaderboardsRemoteService/' + api,
                 method: 'POST',
                 responseType: 'json',
