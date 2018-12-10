@@ -328,7 +328,6 @@
 
         const top295 = (height - 295) + 'px';
         const top52  = (height -  52) + 'px';
-        const bot50 = (height - 50) + 'px';
 
         const agentSubmitBloc = $('.testcases-actions-container').first();
         const codeBloc = $('.code-bloc').first();
@@ -351,6 +350,8 @@
 
                 if (consoleBloc.css('right') !== '0px')
                     consoleBloc.css('right',     '0px');
+                if (consoleBloc.css('margin-top') !== '0px')
+                    consoleBloc.css('margin-top',     '0px');
 
                 if (agentSubmitBloc.css('left') !== '0px')
                     agentSubmitBloc.css('left',     '0px');
@@ -371,10 +372,10 @@
                 statementBloc.css('bottom',     '295px');
 
             // right side
-            if (codeBloc.css('bottom') !== bot50)
-                codeBloc.css('bottom',     bot50);
-            if (consoleBloc.css('top') !== '50px')
-                consoleBloc.css('top',     '50px');
+            if (codeBloc.css('display') !== 'none')
+                codeBloc.css('display',     'none');
+            if (consoleBloc.css('top') !== '0px')
+                consoleBloc.css('top',     '0px');
         }
         else
         {
@@ -386,6 +387,11 @@
                 // swap console / agent blocs
                 consoleBloc.css('right', statementRight);
                 agentSubmitBloc.css('left', ideLeft);
+
+                if (consoleBloc.css('margin-top') === '0px')
+                    consoleBloc.css('margin-top', '');
+
+                codeBloc.css('display', 'block');
 
                 if (consoleBloc.css('left') !== '0px')
                     consoleBloc.css('left',     '0px');
