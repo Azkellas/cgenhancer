@@ -203,10 +203,7 @@
                 if (!agentApi)
                     getAgentApi();
 
-                // make sure the IDE has the correct layout
-                if ($('.code-bloc').first().css('bottom') !== '295px')
-                    handleRightBlocLayout();
-                handleLeftBlocLayout();
+                handleBlocs();
 
                 // add agent buttons
                 manageAgentPanel();
@@ -310,50 +307,109 @@
         }
     }
 
-    /** called at the opening of the ide tab to add the correct display to the right bloc */
-    function handleRightBlocLayout()
+    /** handle blocs layout */
+    function handleBlocs()
     {
-        if (!lastCodeBlocUpdate || (new Date() - lastCodeBlocUpdate > 100))  // max one each 0.1ms
+        if (lastCodeBlocUpdate && (new Date() - lastCodeBlocUpdate < 100))  // max one each 0.1ms
+            return;
+
+        lastCodeBlocUpdate = new Date();
+
+        // optimize console layout
+        const miniLeaderboard = $('.mini-leaderboard').first();
+        if (miniLeaderboard.css('width') !== '130px')
+            miniLeaderboard.css('width',      '130px');
+        const consoleContent = $('.console-content').first();
+        if (consoleContent.css('left') !== '120px')
+            consoleContent.css('left',     '120px');
+
+        const bloc_container = $('.blocs-container').first();
+        const height = bloc_container.height();
+
+        const top295 = (height - 295) + 'px';
+        const top52  = (height -  52) + 'px';
+        const bot50 = (height - 50) + 'px';
+
+        const agentSubmitBloc = $('.testcases-actions-container').first();
+        const codeBloc = $('.code-bloc').first();
+        const consoleBloc = $('.console-bloc').first();
+        const statementBloc = $('.statement-bloc').first();
+
+        const cgSyncActive = $('.code-editor-readonly').length;
+
+        // console on the right side, pair statement-agent, ide-console
+        if (cgSyncActive)
         {
-            // the timer is required on firefox (otherwise it creates an infinite loop competing against angular)
+            // swap console / agent blocs if cgsync is active
+            const statementRight = statementBloc.css('right');
+            const ideLeft = codeBloc.css('left');
+            if (consoleBloc.css('left') !== ideLeft || agentSubmitBloc.css('right') !== statementRight)
+            {
+                // swap console / agent blocs
+                consoleBloc.css('left', ideLeft);
+                agentSubmitBloc.css('right', statementRight);
 
-            lastCodeBlocUpdate = new Date();
+                if (consoleBloc.css('right') !== '0px')
+                    consoleBloc.css('right',     '0px');
 
-            const bloc_container = $('.blocs-container').first();
-            const height = bloc_container.height();
-            const top295 = (height - 295) + 'px';
-            const agentSubmitBloc = $('.testcases-actions-container').first();
-            const codeBloc = $('.code-bloc').first();
+                if (agentSubmitBloc.css('left') !== '0px')
+                    agentSubmitBloc.css('left',     '0px');
 
+                // open console if closed
+                $('.unminimize-button').click();
+
+                // disable expand / minimize
+                $('.minimize-button').attr('disabled', '');
+                $('.expand-button').attr('disabled', '');
+            }
+
+            // handle layout
+            // left side
+            if (agentSubmitBloc.css('top') !== top295)
+                agentSubmitBloc.css('top',     top295);
+            if (statementBloc.css('bottom') !== '295px')
+                statementBloc.css('bottom',     '295px');
+
+            // right side
+            if (codeBloc.css('bottom') !== bot50)
+                codeBloc.css('bottom',     bot50);
+            if (consoleBloc.css('top') !== '50px')
+                consoleBloc.css('top',     '50px');
+        }
+        else
+        {
+            // swap console / agent blocs if cgsync just got inactive
+            const statementRight = statementBloc.css('right');
+            const ideLeft = codeBloc.css('left');
+            if (consoleBloc.css('right') !== statementRight || agentSubmitBloc.css('left') !== ideLeft)
+            {
+                // swap console / agent blocs
+                consoleBloc.css('right', statementRight);
+                agentSubmitBloc.css('left', ideLeft);
+
+                if (consoleBloc.css('left') !== '0px')
+                    consoleBloc.css('left',     '0px');
+
+                if (agentSubmitBloc.css('right') !== '0px')
+                    agentSubmitBloc.css('right',     '0px');
+
+                // disable expand / minimize
+                $('.minimize-button').removeAttr('disabled');
+                $('.expand-button').removeAttr('disabled');
+            }
+
+            // left side
             if (codeBloc.css('bottom') !== '295px')
                 codeBloc.css('bottom',     '295px');
-
             if (agentSubmitBloc.css('top') !== top295)
-                agentSubmitBloc.css('top', top295);
-        }
-    }
+                agentSubmitBloc.css('top',     top295);
 
-    /** called after each mutation in case the player opens/closes the console */
-    function handleLeftBlocLayout()
-    {
-        if (!lastCodeBlocUpdate || (new Date() - lastCodeBlocUpdate > 100))  // max one each 0.1ms
-        {
-            // the timer is required on firefox (otherwise it creates an infinite loop competing against angular)
-
-            lastCodeBlocUpdate = new Date();
-
-            const bloc_container = $('.blocs-container').first();
-            const height = bloc_container.height();
-            const top295 = (height - 295) + 'px';
-            const top52  = (height -  52) + 'px';
-            const consoleBloc = $('.console-bloc').first();
-            const statementBloc = $('.statement-bloc').first();
-
+            // right side
             if (!consoleBloc.find('.header-button.unminimize-button').length)
             {
                 // the console is open
                 if (consoleBloc.css('top') !== top295)
-                    consoleBloc.css('top', top295);
+                    consoleBloc.css('top',     top295);
                 if (statementBloc.css('bottom') !== '295px')
                     statementBloc.css('bottom',     '295px');
             }
@@ -361,12 +417,14 @@
             {
                 // the console is minimized
                 if (consoleBloc.css('top') !== top52)
-                    consoleBloc.css('top', top52);
+                    consoleBloc.css('top',     top52);
+
                 if (statementBloc.css('bottom') !== '52px')
                     statementBloc.css('bottom',     '52px');
             }
         }
     }
+
 
     /** create agent fast selection tools */
     function manageAgentPanel()
