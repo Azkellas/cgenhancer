@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name CG Enhancer
 // @namespace https://cgenhancer.azke.fr
-// @version 0.3.2
+// @version 0.3.3
 // @description  Enhancer script for CodinGame platform
 // @match https://www.codingame.com/*
 // @copyright 2018+, Azkellas, https://github.com/Azkellas/
@@ -328,6 +328,11 @@
         const statementBloc = $('.statement-bloc').first();
 
         const cgSyncActive = $('.code-editor-readonly').length;
+
+        consoleBloc.find('.frame-number-bloc').each(function(idx, element) {
+            if ($(element).css('right') !== '-15px')
+                $(element).css('right',     '-15px');
+        });
 
         // console on the right side, pair statement-agent, ide-console
         if (cgSyncActive)
