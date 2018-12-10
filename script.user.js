@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name CG Enhancer
 // @namespace https://cgenhancer.azke.fr
-// @version 0.3.0
+// @version 0.3.2
 // @description  Enhancer script for CodinGame platform
 // @match https://www.codingame.com/*
 // @copyright 2018+, Azkellas, https://github.com/Azkellas/
@@ -315,13 +315,6 @@
 
         lastCodeBlocUpdate = new Date();
 
-        // optimize console layout
-        const miniLeaderboard = $('.mini-leaderboard').first();
-        if (miniLeaderboard.css('width') !== '130px')
-            miniLeaderboard.css('width',      '130px');
-        const consoleContent = $('.console-content').first();
-        if (consoleContent.css('left') !== '120px')
-            consoleContent.css('left',     '120px');
 
         const bloc_container = $('.blocs-container').first();
         const height = bloc_container.height();
@@ -339,6 +332,32 @@
         // console on the right side, pair statement-agent, ide-console
         if (cgSyncActive)
         {
+            // optimize console layout
+            const miniLeaderboardBloc = $('.mini-leaderboard').first();
+            if (miniLeaderboardBloc.css('height') !== '90px')
+                miniLeaderboardBloc.css('height',     '90px');
+            const maxWidth = consoleBloc.width();
+            if (miniLeaderboardBloc.css('width') !== (maxWidth-2) + 'px')
+                miniLeaderboardBloc.css('width',     (maxWidth-2) + 'px');
+    
+            const miniLeaderboard = $('.cg-ide-mini-leaderboard').first();
+            if (miniLeaderboard.css('display') !== 'inline-flex')
+                miniLeaderboard.css('display',     'inline-flex');
+    
+            const consoleContent = $('.console-content').first();
+            if (consoleContent.css('left') !== '0px')
+                consoleContent.css('left',     '0px');
+            if (consoleContent.css('top') !== '60px')
+                consoleContent.css('top',     '60px');
+            
+    
+            miniLeaderboardBloc.find('.leaderboard-item').each(function(idx, value) {
+                if ($(value).css('width') !== ( (maxWidth-25) / 4) + 'px')
+                    $(value).css('width', ( (maxWidth-25) / 4) + 'px');
+                if ($(value).css('margin') !== '5px')
+                    $(value).css('margin',     '5px');
+            });
+
             // swap console / agent blocs if cgsync is active
             const statementRight = statementBloc.css('right');
             const ideLeft = codeBloc.css('left');
@@ -379,6 +398,14 @@
         }
         else
         {
+            // optimize console layout
+            const miniLeaderboard = $('.mini-leaderboard').first();
+            if (miniLeaderboard.css('width') !== '130px')
+                miniLeaderboard.css('width',     '130px');
+            const consoleContent = $('.console-content').first();
+            if (consoleContent.css('left') !== '120px')
+                consoleContent.css('left',     '120px');
+
             // swap console / agent blocs if cgsync just got inactive
             const statementRight = statementBloc.css('right');
             const ideLeft = codeBloc.css('left');
@@ -402,6 +429,32 @@
                 // disable expand / minimize
                 $('.minimize-button').removeAttr('disabled');
                 $('.expand-button').removeAttr('disabled');
+
+                // optimize console layout
+                const miniLeaderboardBloc = $('.mini-leaderboard').first();
+                const miniLeaderboard = $('.cg-ide-mini-leaderboard').first();
+                if (miniLeaderboardBloc.css('height') === '90px')
+                    miniLeaderboardBloc.css('height',     '');
+                if (miniLeaderboardBloc.css('width') === miniLeaderboard.css('width'))
+                    miniLeaderboardBloc.css('width',     '');
+        
+                if (miniLeaderboard.css('display') === 'inline-flex')
+                    miniLeaderboard.css('display',     '');
+        
+                const consoleContent = $('.console-content').first();
+                if (consoleContent.css('left') === '0px')
+                    consoleContent.css('left',     '');
+                if (consoleContent.css('top') === '60px')
+                    consoleContent.css('top',     '');
+                
+        
+                miniLeaderboardBloc.find('.leaderboard-item').each(function(idx, value) {
+                    if ($(value).width() > miniLeaderboard.width())
+                        $(value).css('width',     '');
+                    if ($(value).css('margin') === '5px')
+                        $(value).css('margin',     '');
+                });
+
             }
 
             // left side
