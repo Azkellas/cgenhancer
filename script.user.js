@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name CG Enhancer
 // @namespace https://cgenhancer.azke.fr
-// @version 0.3.3
+// @version 0.3.4
 // @description  Enhancer script for CodinGame platform
 // @match https://www.codingame.com/*
 // @copyright 2018+, Azkellas, https://github.com/Azkellas/
@@ -330,8 +330,8 @@
         const cgSyncActive = $('.code-editor-readonly').length;
 
         consoleBloc.find('.frame-number-bloc').each(function(idx, element) {
-            if ($(element).css('right') !== '-15px')
-                $(element).css('right',     '-15px');
+            if ($(element).css('right') !== '0px')
+                $(element).css('right',     '0px');
         });
 
         // console on the right side, pair statement-agent, ide-console
@@ -857,12 +857,12 @@
         });
 
         // at least one undefined rank
-        if (!userRank || !enemyRank || !userWon)
+        if (!userRank || !enemyRank)
             return 'rgb(240, 240, 240)';
 
         // unexpected loss
         if (enemyRank > 1.2*userRank + 10 && !userWon)
-            return '#rgb(255, 240, 240)';
+            return 'rgb(255, 240, 240)';
 
         // unexepcted win
         if (userRank > 1.2*enemyRank + 10 && userWon)
