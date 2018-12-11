@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name CG Enhancer
 // @namespace https://cgenhancer.azke.fr
-// @version 0.3.4
+// @version 0.4.0
 // @description  Enhancer script for CodinGame platform
 // @match https://www.codingame.com/*
 // @copyright 2018+, Azkellas, https://github.com/Azkellas/
@@ -549,6 +549,35 @@
 
             const color = getColor(battleDiv);
             $(battleDiv).css('background-color', color);
+
+            if (agentApi)
+            {
+                const battleAngular = angular.element(battleDiv);
+                const battleData = battleAngular.scope().battle;
+
+                let draw = true;
+                for (const player of battleData.players)
+                {
+                    if (player.position)
+                        draw = false;
+                }
+
+                if (draw)
+                {
+                    $(battleDiv).find('.player-agent')
+                        .first().append('<div class="egal">=</div>');
+                    const egal = $(battleDiv).find('.egal').first();
+                    egal
+                        .css('color', '#c90')
+                        .css('font-weight', '900')
+                        .css('position', 'absolute')
+                        .css('top', '-17px')
+                        .css('right', '-12px')
+                        .css('font-size', '40px')
+                        .css('-webkit-text-stroke', '1px black')
+                        .css('z-index', '200');
+                }
+            }
 
             $(battleDiv).find('.player-agent').each(function(avatarIndex, playerAvatar) {
                 const player = $(playerAvatar).attr('title');
