@@ -39,6 +39,9 @@ For further personalization, look for `// disallow sound for notifications` and 
 * disable community red notification at the top while browsing CG.
 
 ### IDE
+* Full screen console if CG sync is used.
+
+![FullConsole](https://i.imgur.com/OPghPnz.png)
 
 #### Agent panel
 * Swap button like CG spunk
@@ -52,7 +55,7 @@ For further personalization, look for `// disallow sound for notifications` and 
 * Display the full date
 * Possibility to rename submits
 * Possibility to save the rank and the elo of submits
-
+* Possibility to hide submits from the list 
 ![HistoryExample](https://image.ibb.co/eDarJp/history.gif)
 
 
@@ -60,9 +63,10 @@ For further personalization, look for `// disallow sound for notifications` and 
 * Disable the tv-battle at opening (game is still loaded but not displayed)
 * Show opponents' rankings (if in the top1000)
 * Highlight unexpected results (winning against a better opponent / losing against a worse opponent)
-
+* Display draws (with angular debug mode enabled)
 ![LastBattlesExample](https://image.ibb.co/hTop4U/lastbattles.gif)
 
+![LastBattlesDraws](https://i.imgur.com/epfmuXN.png)
 
 ## Possible todos
 ### Tab history
