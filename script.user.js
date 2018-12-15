@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name CG Enhancer
 // @namespace https://cgenhancer.azke.fr
-// @version 0.4.0
+// @version 0.4.1
 // @description  Enhancer script for CodinGame platform
 // @match https://www.codingame.com/*
 // @copyright 2018+, Azkellas, https://github.com/Azkellas/
@@ -1022,7 +1022,7 @@
 
         // reset stored leaderboard and user/boss agents
         lastLeaderboardUpdate = new Date();
-        playersData = {};
+        const newPlayersData = {};
         userAgent = null;
         bossAgent = null;
 
@@ -1040,11 +1040,13 @@
                     {
                         if (user.pseudo)
                         {
-                            playersData[user.pseudo.toLowerCase()] = user;
+                            newPlayersData[user.pseudo.toLowerCase()] = user;
                             if (user.arenaboss && (!userAgent || userAgent.league.divisionIndex === user.league.divisionIndex))
                                 bossAgent = user;
                         }
                     }
+                    // only update playersData at the end to prevent issue #1
+                    playersData = newPlayersData;
                 })
                 .catch(function(error) {
                     console.error('[CG Enhancer] api request failed with error: ' + error);
@@ -1073,12 +1075,14 @@
                     {
                         if (user.pseudo)
                         {
-                            playersData[user.pseudo.toLowerCase()] = user;
-                            playersData[user.pseudo.toLowerCase()].rank = user.localRank;  // to avoid wrong rank in agent panel when selected
+                            newPlayersData[user.pseudo.toLowerCase()] = user;
+                            newPlayersData[user.pseudo.toLowerCase()].rank = user.localRank;  // to avoid wrong rank in agent panel when selected
                             if (user.pseudo === userPseudo)
                                 userAgent = user;
                         }
                     }
+                    // only update playersData at the end to prevent issue #1
+                    playersData = newPlayersData;
                 }
             });
         }
