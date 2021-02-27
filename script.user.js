@@ -203,11 +203,11 @@
                 if (!agentApi)
                     getAgentApi();
 
-                handleBlocs();
 
                 // add agent buttons
                 manageAgentPanel();
             }
+            handleBlocs();
 
             // check if we opened last battles without looking at all mutations
             const firstMutation = $(mutations[0].target);
@@ -547,6 +547,7 @@
             // might crash for some browsers because of color conversion
             // check https://stackoverflow.com/a/11943970 for a safe way to code it
 
+            console.log(battleDiv);
             const color = getColor(battleDiv);
             $(battleDiv).css('background-color', color);
 
@@ -564,6 +565,8 @@
 
                 if (draw)
                 {
+                    console.log('draw');
+
                     $(battleDiv).find('.player-agent')
                         .first().append('<div class="egal">=</div>');
                     const egal = $(battleDiv).find('.egal').first();
@@ -581,7 +584,7 @@
 
             $(battleDiv).find('.player-agent').each(function(avatarIndex, playerAvatar) {
                 const player = $(playerAvatar).attr('title');
-                if (player && player !== userPseudo)
+                if (player !== userPseudo)
                 {
                     const playerAgent = playersData[player.toLowerCase()];
                     const rank = playerAgent ? playerAgent.localRank : '';
@@ -1069,7 +1072,7 @@
                 responseType: 'json',
                 data: '[' + multi + ', undefined, global, { active: false, column: undefined, filter: undefined}]',
                 onload: function(response) {
-                    const rawLeaderboard = response.response.success;
+                    const rawLeaderboard = response.response;
                     const users = rawLeaderboard.users;
                     for (const user of users)
                     {
